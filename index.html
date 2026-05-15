@@ -56,7 +56,10 @@
   .record-card{background:var(--white);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;transition:transform .1s}
   .record-card:active{transform:scale(.98)}
   .rc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-  .rc-device{font-size:15px;font-weight:600;color:var(--text)}
+  .rc-device{font-size:15px;font-weight:600;color:var(--text);cursor:pointer;flex:1}
+  .rc-header-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .rc-delete-btn{width:26px;height:26px;border-radius:50%;background:var(--gray-light);border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .15s;flex-shrink:0}
+  .rc-delete-btn:hover{opacity:1;background:var(--red-light)}
   .rc-status{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
   .status-done{background:var(--green-light);color:var(--green)}
   .status-ing{background:var(--orange-light);color:var(--orange)}
@@ -128,6 +131,13 @@
   @keyframes pulse{0%{transform:scale(.9);opacity:.7}100%{transform:scale(1.4);opacity:0}}
   .confirm-btn{width:50px;height:50px;border-radius:25px;background:var(--green-light);border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--green)}
   .confirm-btn.hidden-btn{opacity:0;pointer-events:none}
+  .hidden-btn{opacity:0;pointer-events:none}
+  .append-hint{background:var(--blue-light);border-radius:8px;padding:6px 12px;margin-bottom:10px;text-align:center;font-size:12px;color:var(--blue);display:block}
+  .append-hint.hidden-btn{opacity:0;pointer-events:none;display:none}
+  .append-hint.show{opacity:1;pointer-events:all;display:block}
+  .append-btn{display:block;width:100%;margin-top:8px;padding:10px;border-radius:20px;background:var(--blue-light);color:var(--blue);border:none;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s}
+  .append-btn:active{opacity:.7}
+  .append-btn.hidden-btn{opacity:0;pointer-events:none;display:none}
   .transcript-preview{background:var(--gray-bg);border-radius:10px;padding:12px;margin-bottom:12px;min-height:56px}
   .tp-label{font-size:11px;color:var(--text3);margin-bottom:4px}
   .tp-oral{font-size:12px;color:var(--orange);line-height:1.6}
@@ -265,7 +275,7 @@
   <!-- ===== 统计页 ===== -->
   <div id="page-stats" class="page hidden">
     <div class="top-bar">
-      <button class="back-btn" onclick="goBack('page-list')" style="visibility:hidden">←</button>
+      <button class="back-btn" onclick="switchTab('list')" title="返回首页">🏠</button>
       <div class="top-info">
         <div class="top-title">维修统计</div>
         <div class="top-sub">数据总览与分析</div>
@@ -277,7 +287,7 @@
   <!-- ===== 词库页 ===== -->
   <div id="page-vocab" class="page hidden">
     <div class="top-bar">
-      <button class="back-btn" onclick="goBack('page-list')" style="visibility:hidden">←</button>
+      <button class="back-btn" onclick="switchTab('list')" title="返回首页">🏠</button>
       <div class="top-info">
         <div class="top-title">专业词库</div>
         <div class="top-sub">口语 ↔ 书面语对照</div>
@@ -334,6 +344,13 @@
 
   <!-- ===== 我的页面 ===== -->
   <div id="page-mine" class="page hidden">
+    <div class="top-bar">
+      <button class="back-btn" onclick="switchTab('list')" title="返回首页">🏠</button>
+      <div class="top-info">
+        <div class="top-title">我的</div>
+        <div class="top-sub">数据管理与设置</div>
+      </div>
+    </div>
     <div style="padding:20px 16px;text-align:center">
       <div style="font-size:48px;margin-bottom:8px">👤</div>
       <div style="font-size:16px;font-weight:600;color:var(--text)">医修宝</div>
@@ -538,6 +555,10 @@
       <div class="tp-label">识别结果</div>
       <div class="tp-oral" id="tpOral" style="color:var(--text3);font-style:italic">等待录音...</div>
     </div>
+    <!-- 已识别内容提示（继续录音时显示） -->
+    <div class="append-hint hidden-btn" id="appendHint">
+      <span>📝 已识别内容将保留，继续录音将追加</span>
+    </div>
     <div class="waveform-container" id="waveformContainer">
       <div class="wave-bar" id="w1" style="height:8px"></div>
       <div class="wave-bar" id="w2" style="height:8px"></div>
@@ -567,6 +588,8 @@
       <button class="confirm-btn hidden-btn" id="confirmBtn" onclick="confirmStep()" title="确认">✓</button>
     </div>
     <div style="text-align:center;font-size:12px;color:var(--text3);margin-top:-4px" id="recordHint">点击麦克风开始录音</div>
+    <!-- 继续录音按钮 -->
+    <button class="append-btn hidden-btn" id="appendBtn" onclick="appendMoreRecord()" title="追加更多内容">＋ 继续录音</button>
   </div>
 </div>
 
@@ -1178,13 +1201,16 @@ function renderList(filter=''){
         ).join('')}
         ${photoCnt>3?`<span class="rc-photo-more">+${photoCnt-3}张</span>`:''}
       </div>` : '';
-      sec.innerHTML += `<div class="record-card" onclick="openRecord('${r.id}')">
+      sec.innerHTML += `<div class="record-card">
         <div class="rc-header">
-          <div class="rc-device">${r.device}</div>
-          <span class="rc-status ${r.status==='done'?'status-done':'status-ing'}">${r.status==='done'?'已完成':'进行中'}</span>
+          <div class="rc-device" onclick="openRecord('${r.id}')">${r.device}</div>
+          <div class="rc-header-right">
+            <span class="rc-status ${r.status==='done'?'status-done':'status-ing'}">${r.status==='done'?'已完成':'进行中'}</span>
+            <button class="rc-delete-btn" onclick="event.stopPropagation();deleteRecord('${r.id}')" title="删除">🗑</button>
+          </div>
         </div>
-        <div class="rc-fault">故障：${r.fault}${r.errorCode?' · '+r.errorCode:''}</div>
-        <div class="rc-meta">
+        <div class="rc-fault" onclick="openRecord('${r.id}')">故障：${r.fault}${r.errorCode?' · '+r.errorCode:''}</div>
+        <div class="rc-meta" onclick="openRecord('${r.id}')">
           <span>👨‍🔧 ${r.engineer}</span>
           <span>📝 ${r.steps.length}个步骤</span>
           ${photoCnt>0?`<span>📷 ${photoCnt}张照片</span>`:''}
@@ -1395,6 +1421,16 @@ function deleteRecErrorPhoto(recId, photo){
   renderDetail(recId);
 }
 
+function deleteRecord(id){
+  const rec = records.find(r=>r.id===id);
+  if(!rec) return;
+  if(!confirm('确认删除维修记录「' + rec.device + '」？此操作不可恢复。')) return;
+  records = records.filter(r=>r.id!==id);
+  saveDB(records);
+  renderList();
+  showToast('已删除');
+}
+
 // ============================================================
 // 录音逻辑（Web Speech API + 模拟）
 // ============================================================
@@ -1405,20 +1441,26 @@ let wavInterval = null;
 let recognition = null;
 let finalTranscript = '';
 let interimTranscript = '';
+// 连续录音追加模式
+let appendMode = false;
+let prevOral = ''; // 上一次已确认的口语原文
 
 function openRecordOverlay(){
-  finalTranscript = '';
-  interimTranscript = '';
-  document.getElementById('tpOral').textContent = '等待录音...';
-  document.getElementById('tpOral').style.color = 'var(--text3)';
-  document.getElementById('tpOral').style.fontStyle = 'italic';
-  // 移除书面语显示
-  const tp = document.getElementById('transcriptPreview');
-  const written = tp.querySelector('.tp-written');
-  if(written) written.remove();
-  const arrow = tp.querySelector('.tp-arrow');
-  if(arrow) arrow.remove();
-
+  // 如果已有识别内容，保留（追加模式由 appendMoreRecord 调用）
+  if(!appendMode){
+    finalTranscript = '';
+    interimTranscript = '';
+    prevOral = '';
+    document.getElementById('tpOral').textContent = '等待录音...';
+    document.getElementById('tpOral').style.color = 'var(--text3)';
+    document.getElementById('tpOral').style.fontStyle = 'italic';
+    // 移除书面语显示
+    const tp = document.getElementById('transcriptPreview');
+    const written = tp.querySelector('.tp-written');
+    if(written) written.remove();
+    const arrow = tp.querySelector('.tp-arrow');
+    if(arrow) arrow.remove();
+  }
   document.getElementById('recordTimer').textContent = '00:00';
   document.getElementById('confirmBtn').classList.add('hidden-btn');
   document.getElementById('micBtn').classList.remove('recording');
@@ -1426,6 +1468,10 @@ function openRecordOverlay(){
   document.getElementById('recordTitle').textContent = `添加步骤 #${getCurrentStepCount()+1}`;
   stopWaveAnim();
   isRecording = false;
+  // 追加模式下隐藏继续按钮
+  document.getElementById('appendBtn').classList.add('hidden-btn');
+  document.getElementById('appendHint').classList.add('hidden-btn');
+  document.getElementById('appendHint').classList.remove('show');
   document.getElementById('recordOverlay').classList.add('show');
 }
 
@@ -1449,9 +1495,19 @@ function startRecording(){
   document.getElementById('micBtn').classList.add('recording');
   document.getElementById('recordHint').textContent = '正在录音... 再次点击停止';
   document.getElementById('confirmBtn').classList.add('hidden-btn');
-  document.getElementById('tpOral').textContent = '识别中...';
-  document.getElementById('tpOral').style.color = 'var(--blue)';
-  document.getElementById('tpOral').style.fontStyle = 'normal';
+  // 追加模式：保留已有口语显示
+  if(!appendMode || !prevOral){
+    document.getElementById('tpOral').textContent = '识别中...';
+    document.getElementById('tpOral').style.color = 'var(--blue)';
+    document.getElementById('tpOral').style.fontStyle = 'normal';
+  } else {
+    // 显示已追加内容 + 新识别
+    document.getElementById('tpOral').textContent = prevOral + ' + 识别中...';
+    document.getElementById('tpOral').style.color = 'var(--orange)';
+    document.getElementById('tpOral').style.fontStyle = 'normal';
+    document.getElementById('appendHint').classList.remove('hidden-btn');
+    document.getElementById('appendHint').classList.add('show');
+  }
 
   // 计时器
   recordTimer = setInterval(()=>{
@@ -1471,17 +1527,33 @@ function startRecording(){
     recognition.lang = 'zh-CN';
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-    finalTranscript = '';
+    // 取多个候选，取最优（提升识别准确率）
+    recognition.maxAlternatives = 3;
+    // 追加模式：保留之前已识别内容
+    if(!appendMode) finalTranscript = '';
 
     recognition.onresult = (e)=>{
       let interim = '';
       for(let i = e.resultIndex; i < e.results.length; i++){
-        if(e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
-        else interim += e.results[i][0].transcript;
+        if(e.results[i].isFinal){
+          // 选置信度最高的候选
+          let best = e.results[i][0];
+          for(let a = 1; a < e.results[i].length; a++){
+            if(e.results[i][a].confidence > best.confidence){
+              best = e.results[i][a];
+            }
+          }
+          finalTranscript += best.transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
       }
-      const display = finalTranscript + interim;
-      document.getElementById('tpOral').textContent = display || '识别中...';
+      const currentOral = finalTranscript + interim;
+      if(appendMode && prevOral){
+        document.getElementById('tpOral').textContent = prevOral + ' ' + currentOral;
+      } else {
+        document.getElementById('tpOral').textContent = currentOral || '识别中...';
+      }
     };
     recognition.onerror = ()=>{
       // 降级到模拟模式
@@ -1530,31 +1602,50 @@ function stopRecording(){
   document.getElementById('micBtn').classList.remove('recording');
   document.getElementById('recordHint').textContent = '录音完成，确认后添加步骤';
 
-  const oral = finalTranscript || document.getElementById('tpOral').textContent;
-  if(oral && oral !== '识别中...' && oral !== '等待录音...'){
+  const newOral = finalTranscript || document.getElementById('tpOral').textContent.replace(/ \+ 识别中...$/,'').replace(/识别中...$/,'');
+  // 追加模式：合并之前的口语
+  if(appendMode && prevOral){
+    const combinedOral = prevOral + ' ' + newOral;
+    document.getElementById('tpOral').textContent = '「' + combinedOral + '」';
+    document.getElementById('tpOral').style.color = 'var(--orange)';
     // 转换为书面语
-    const written = oralToWritten(oral);
+    const written = oralToWritten(combinedOral);
     const tp = document.getElementById('transcriptPreview');
-    // 移除旧的
     tp.querySelector('.tp-written')?.remove();
     tp.querySelector('.tp-arrow')?.remove();
-
-    document.getElementById('tpOral').textContent = `「${oral}」`;
-    document.getElementById('tpOral').style.color = 'var(--orange)';
-
     const arrowDiv = document.createElement('div');
     arrowDiv.className = 'tp-arrow converting';
     arrowDiv.innerHTML = '⬇ 规范化处理';
     tp.appendChild(arrowDiv);
-
     const writtenDiv = document.createElement('div');
     writtenDiv.className = 'tp-written converting';
     writtenDiv.textContent = written;
     tp.appendChild(writtenDiv);
-
     finalTranscript = written;
-    document.getElementById('confirmBtn').classList.remove('hidden-btn');
+  } else {
+    prevOral = newOral;
+    const oral = newOral;
+    if(oral && oral !== '识别中...' && oral !== '等待录音...'){
+      const written = oralToWritten(oral);
+      const tp = document.getElementById('transcriptPreview');
+      tp.querySelector('.tp-written')?.remove();
+      tp.querySelector('.tp-arrow')?.remove();
+      document.getElementById('tpOral').textContent = '「' + oral + '」';
+      document.getElementById('tpOral').style.color = 'var(--orange)';
+      const arrowDiv = document.createElement('div');
+      arrowDiv.className = 'tp-arrow converting';
+      arrowDiv.innerHTML = '⬇ 规范化处理';
+      tp.appendChild(arrowDiv);
+      const writtenDiv = document.createElement('div');
+      writtenDiv.className = 'tp-written converting';
+      writtenDiv.textContent = written;
+      tp.appendChild(writtenDiv);
+      finalTranscript = written;
+    }
   }
+  // 显示继续按钮（用户可追加更多）
+  document.getElementById('appendBtn').classList.remove('hidden-btn');
+  document.getElementById('confirmBtn').classList.remove('hidden-btn');
 }
 
 function cancelRecord(){
@@ -1563,7 +1654,29 @@ function cancelRecord(){
   clearInterval(simTimer);
   stopWaveAnim();
   if(recognition){ try{ recognition.stop(); }catch(e){} recognition=null; }
+  appendMode = false;
+  prevOral = '';
   document.getElementById('recordOverlay').classList.remove('show');
+}
+
+// 继续录音（追加模式）
+function appendMoreRecord(){
+  appendMode = true;
+  // 保存当前口语原文
+  const currentOralEl = document.getElementById('tpOral');
+  let currentText = currentOralEl.textContent || '';
+  currentText = currentText.replace(/「|」/g,'').trim();
+  if(currentText && currentText !== '识别中...' && currentText !== '等待录音...'){
+    prevOral = currentText;
+  }
+  // 重置识别变量，但保留显示
+  finalTranscript = '';
+  interimTranscript = '';
+  document.getElementById('confirmBtn').classList.add('hidden-btn');
+  document.getElementById('appendBtn').classList.add('hidden-btn');
+  document.getElementById('recordHint').textContent = '点击麦克风继续录音';
+  // 自动开始录音
+  startRecording();
 }
 
 function confirmStep(){
@@ -1605,15 +1718,23 @@ let faultFinalTranscript = '';
 let faultInterimTranscript = '';
 
 function startVoiceFaultDesc(){
-  faultFinalTranscript = '';
-  faultInterimTranscript = '';
-  document.getElementById('faultTpOral').textContent = '等待录音...';
-  document.getElementById('faultTpOral').style.color = 'var(--text3)';
-  document.getElementById('faultTpOral').style.fontStyle = 'italic';
+  // 如果已有录音结果，保留（支持追加）
+  const existingText = document.getElementById('faultTpOral').textContent || '';
+  const hasExisting = existingText && existingText !== '等待录音...' && existingText !== '识别中...';
+  if(!hasExisting){
+    faultFinalTranscript = '';
+    faultInterimTranscript = '';
+    document.getElementById('faultTpOral').textContent = '等待录音...';
+    document.getElementById('faultTpOral').style.color = 'var(--text3)';
+    document.getElementById('faultTpOral').style.fontStyle = 'italic';
+  } else {
+    document.getElementById('faultTpOral').style.color = 'var(--blue)';
+    document.getElementById('faultTpOral').style.fontStyle = 'normal';
+  }
   document.getElementById('faultRecordTimer').textContent = '00:00';
   document.getElementById('faultConfirmBtn').classList.add('hidden-btn');
   document.getElementById('faultMicBtn').classList.remove('recording');
-  document.getElementById('faultRecordHint').textContent = '点击麦克风开始录音';
+  document.getElementById('faultRecordHint').textContent = hasExisting ? '点击可重新录音（之前内容将被替换）' : '点击麦克风开始录音';
   document.getElementById('voiceFaultOverlay').classList.add('show');
 }
 
@@ -1651,12 +1772,20 @@ function startFaultRecording_(){
     faultRecognition.lang = 'zh-CN';
     faultRecognition.continuous = true;
     faultRecognition.interimResults = true;
+    faultRecognition.maxAlternatives = 3;
     faultFinalTranscript = '';
     faultRecognition.onresult = (e)=>{
       let interim = '';
       for(let i=e.resultIndex;i<e.results.length;i++){
-        if(e.results[i].isFinal) faultFinalTranscript += e.results[i][0].transcript;
-        else interim += e.results[i][0].transcript;
+        if(e.results[i].isFinal){
+          let best = e.results[i][0];
+          for(let a=1;a<e.results[i].length;a++){
+            if(e.results[i][a].confidence > best.confidence) best = e.results[i][a];
+          }
+          faultFinalTranscript += best.transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
       }
       document.getElementById('faultTpOral').textContent = (faultFinalTranscript+interim)||'识别中...';
     };
@@ -1699,7 +1828,9 @@ function confirmFaultText(){
   const text = faultFinalTranscript || document.getElementById('faultTpOral').textContent;
   if(!text || text==='识别中...'){ showToast('请先完成录音'); return; }
   const ta = document.getElementById('faultDesc');
-  ta.value = ta.value ? (ta.value + ' ' + text) : text;
+  // 去除引号后追加
+  const cleanText = text.replace(/「|」/g,'').trim();
+  ta.value = ta.value ? (ta.value + ' ' + cleanText) : cleanText;
   closeVoiceFault(null);
   showToast('✓ 已填入故障描述');
 }
@@ -1957,9 +2088,13 @@ function shareSummary(){
 function switchTab(name, el){
   document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
   if(name==='list'){
     document.getElementById('page-list').classList.remove('hidden');
+    // 顶栏按钮触发时，手动激活 tab-bar 对应项
+    document.querySelectorAll('.tab-item').forEach(t=>{
+      if(t.textContent.includes('记录') || t.textContent.includes('')) t.classList.add('active');
+    });
   } else if(name==='stats'){
     document.getElementById('page-stats').classList.remove('hidden');
     renderStatsPage(records);
