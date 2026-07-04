@@ -1,0 +1,14 @@
+{
+  "name": "tianqin-repair",
+  "version": "1.0.0",
+  "description": "天勤零件维修记录表 - 在线共享版",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "天勤技术部",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

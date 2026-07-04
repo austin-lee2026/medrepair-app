@@ -2,2145 +2,333 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1565C0">
-<title>医修宝 - 医疗器械维修记录</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天勤零件维修记录表</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  :root{
-    --blue:#1565C0;--blue-light:#E3F2FD;--blue-mid:#1976D2;
-    --green:#2E7D32;--green-light:#E8F5E9;
-    --orange:#E65100;--orange-light:#FFF3E0;
-    --red:#C62828;--red-light:#FFEBEE;
-    --gray:#546E7A;--gray-light:#ECEFF1;--gray-bg:#F5F7FA;
-    --text:#1A1A2E;--text2:#546E7A;--text3:#90A4AE;
-    --border:#DDE3EA;--white:#FFFFFF;
-    --radius:12px;--radius-sm:8px;--radius-lg:16px;
-    --shadow:0 2px 12px rgba(0,0,0,0.08);
-  }
-  html,body{height:100%;overflow:hidden;background:var(--gray-bg)}
-  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;font-size:14px;color:var(--text)}
-  #app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;background:var(--white);position:relative;overflow:hidden}
-
-  /* ===== 顶部导航 ===== */
-  .top-bar{background:var(--blue);color:#fff;padding:env(safe-area-inset-top,12px) 16px 12px;display:flex;align-items:center;gap:10px;min-height:56px;flex-shrink:0}
-  .top-bar .back-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;color:#fff;font-size:16px;flex-shrink:0}
-  .top-info{flex:1;min-width:0}
-  .top-title{font-size:16px;font-weight:600;line-height:1.3}
-  .top-sub{font-size:12px;opacity:.8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .top-actions{display:flex;gap:8px;flex-shrink:0}
-  .icon-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;color:#fff;font-size:15px}
-
-  /* ===== 页面切换 ===== */
-  .page{position:absolute;inset:0;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform}
-  .page.hidden{transform:translateX(100%)}
-  .page.hidden-left{transform:translateX(-30%)}
-
-  /* ===== 主列表页 ===== */
-  #page-list{background:var(--gray-bg)}
-  .list-header{background:var(--blue);color:#fff;padding:env(safe-area-inset-top,0px) 16px 16px;flex-shrink:0}
-  .list-header-top{display:flex;align-items:center;justify-content:space-between;padding-top:12px}
-  .app-name{font-size:20px;font-weight:700}
-  .app-badge{background:rgba(255,255,255,0.2);font-size:11px;padding:2px 8px;border-radius:10px}
-  .list-search{margin-top:12px;background:rgba(255,255,255,0.15);border-radius:20px;display:flex;align-items:center;padding:8px 14px;gap:8px}
-  .list-search input{background:transparent;border:none;outline:none;color:#fff;font-size:13px;flex:1;min-width:0}
-  .list-search input::placeholder{color:rgba(255,255,255,0.6)}
-  .list-stats{display:flex;gap:0;margin-top:16px}
-  .stat-item{flex:1;text-align:center;padding:8px 0;border-right:1px solid rgba(255,255,255,0.15)}
-  .stat-item:last-child{border-right:none}
-  .stat-num{font-size:20px;font-weight:700}
-  .stat-label{font-size:11px;opacity:.75;margin-top:2px}
-  .list-body{flex:1;overflow-y:auto;padding:12px;padding-bottom:80px}
-  .section-title{font-size:12px;color:var(--text3);font-weight:500;margin:8px 4px 8px;text-transform:uppercase;letter-spacing:.5px}
-  .record-card{background:var(--white);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;transition:transform .1s}
-  .record-card:active{transform:scale(.98)}
-  .rc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-  .rc-device{font-size:15px;font-weight:600;color:var(--text);cursor:pointer;flex:1}
-  .rc-header-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-  .rc-delete-btn{width:26px;height:26px;border-radius:50%;background:var(--gray-light);border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .15s;flex-shrink:0}
-  .rc-delete-btn:hover{opacity:1;background:var(--red-light)}
-  .rc-status{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
-  .status-done{background:var(--green-light);color:var(--green)}
-  .status-ing{background:var(--orange-light);color:var(--orange)}
-  .rc-fault{font-size:13px;color:var(--text2);margin-bottom:6px}
-  .rc-meta{display:flex;gap:12px;font-size:11px;color:var(--text3)}
-  .rc-photos{display:flex;gap:4px;margin-top:8px;align-items:center}
-  .rc-photo-thumb{width:36px;height:36px;border-radius:6px;background:var(--blue-light);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:18px}
-  .rc-photo-thumb img{width:100%;height:100%;object-fit:cover}
-  .rc-photo-more{font-size:11px;color:var(--text3);margin-left:2px}
-  .fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);right:20px;width:56px;height:56px;border-radius:28px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(21,101,192,0.4);cursor:pointer;border:none;z-index:10;transition:transform .1s}
-  .fab:active{transform:scale(.95)}
-
-  /* ===== 底部标签栏 ===== */
-  .tab-bar{background:var(--white);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);flex-shrink:0;z-index:5}
-  .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;gap:3px;cursor:pointer;color:var(--text3);font-size:10px;border:none;background:none;transition:color .2s}
-  .tab-item.active{color:var(--blue)}
-  .tab-icon{font-size:20px;line-height:1}
-
-  /* ===== 记录详情页 ===== */
-  #page-detail{background:var(--gray-bg)}
-  .detail-body{flex:1;overflow-y:auto;padding:12px;padding-bottom:100px}
-
-  .info-card{background:var(--white);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow)}
-  .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-  .card-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
-  .card-title .dot{width:8px;height:8px;border-radius:50%;background:var(--blue)}
-  .card-edit-btn{font-size:12px;color:var(--blue);cursor:pointer;border:none;background:none;padding:4px 8px;border-radius:6px}
-
-  .field-row{display:flex;padding:7px 0;border-bottom:1px solid var(--gray-bg)}
-  .field-row:last-child{border-bottom:none}
-  .field-label{font-size:12px;color:var(--text3);width:70px;flex-shrink:0;line-height:1.6}
-  .field-val{font-size:13px;color:var(--text);flex:1;line-height:1.6}
-  .field-val.editable{color:var(--blue)}
-
-  /* ===== 语音步骤 ===== */
-  .step-list{display:flex;flex-direction:column;gap:8px}
-  .step-item{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-  .step-item-header{display:flex;align-items:center;gap:10px;padding:12px 14px}
-  .step-num{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .step-content{flex:1;min-width:0}
-  .step-text{font-size:13px;color:var(--text);line-height:1.6}
-  .step-time{font-size:11px;color:var(--text3);margin-top:2px}
-  .step-actions{display:flex;gap:6px;flex-shrink:0}
-  .step-action-btn{width:28px;height:28px;border-radius:50%;background:var(--gray-bg);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:none;color:var(--text2)}
-  .step-photos{padding:0 14px 12px;display:flex;gap:6px;flex-wrap:wrap}
-  .step-photo{width:70px;height:70px;border-radius:8px;overflow:hidden;position:relative;cursor:pointer}
-  .step-photo img{width:100%;height:100%;object-fit:cover}
-  .step-photo-add{background:var(--gray-bg);border:1.5px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text3)}
-
-  /* ===== 录音浮层 ===== */
-  .record-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
-  .record-overlay.show{opacity:1;pointer-events:all}
-  .record-sheet{background:var(--white);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 20px);width:100%;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
-  .record-overlay.show .record-sheet{transform:translateY(0)}
-  .record-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
-  .record-title{font-size:16px;font-weight:600;text-align:center;margin-bottom:4px}
-  .record-sub{font-size:13px;color:var(--text3);text-align:center;margin-bottom:20px}
-  .waveform-container{height:64px;display:flex;align-items:center;justify-content:center;gap:3px;margin-bottom:16px}
-  .wave-bar{width:4px;border-radius:3px;background:var(--blue);transition:height .1s ease}
-  .record-timer{font-size:28px;font-weight:300;text-align:center;color:var(--text);letter-spacing:2px;margin-bottom:20px;font-variant-numeric:tabular-nums}
-  .record-btn-row{display:flex;align-items:center;justify-content:center;gap:32px;margin-bottom:16px}
-  .cancel-btn{width:50px;height:50px;border-radius:25px;background:var(--gray-bg);border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2)}
-  .mic-btn{width:72px;height:72px;border-radius:36px;background:var(--blue);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(21,101,192,0.35);position:relative;transition:transform .1s}
-  .mic-btn:active{transform:scale(.95)}
-  .mic-btn.recording{background:var(--red)}
-  .mic-btn svg{color:#fff}
-  .pulse-ring{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--blue);opacity:0;animation:none}
-  .mic-btn.recording .pulse-ring{animation:pulse 1.5s ease-out infinite}
-  @keyframes pulse{0%{transform:scale(.9);opacity:.7}100%{transform:scale(1.4);opacity:0}}
-  .confirm-btn{width:50px;height:50px;border-radius:25px;background:var(--green-light);border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--green)}
-  .confirm-btn.hidden-btn{opacity:0;pointer-events:none}
-  .hidden-btn{opacity:0;pointer-events:none}
-  .append-hint{background:var(--blue-light);border-radius:8px;padding:6px 12px;margin-bottom:10px;text-align:center;font-size:12px;color:var(--blue);display:block}
-  .append-hint.hidden-btn{opacity:0;pointer-events:none;display:none}
-  .append-hint.show{opacity:1;pointer-events:all;display:block}
-  .append-btn{display:block;width:100%;margin-top:8px;padding:10px;border-radius:20px;background:var(--blue-light);color:var(--blue);border:none;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s}
-  .append-btn:active{opacity:.7}
-  .append-btn.hidden-btn{opacity:0;pointer-events:none;display:none}
-  .transcript-preview{background:var(--gray-bg);border-radius:10px;padding:12px;margin-bottom:12px;min-height:56px}
-  .tp-label{font-size:11px;color:var(--text3);margin-bottom:4px}
-  .tp-oral{font-size:12px;color:var(--orange);line-height:1.6}
-  .tp-written{font-size:13px;color:var(--text);line-height:1.6;margin-top:4px;font-weight:500}
-  .tp-arrow{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;margin:4px 0}
-
-  /* ===== 照片弹层 ===== */
-  .photo-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
-  .photo-overlay.show{display:flex}
-  .photo-overlay img{max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain}
-  .photo-close{position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-
-  /* ===== 总结页 ===== */
-  #page-summary{background:var(--gray-bg)}
-  .summary-body{flex:1;overflow-y:auto;padding:12px;padding-bottom:30px}
-  .summary-card{background:var(--white);border-radius:var(--radius);padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
-  .summary-section-title{font-size:14px;font-weight:600;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-  .summary-text{font-size:13px;color:var(--text);line-height:1.8}
-  .summary-step-row{display:flex;gap:10px;margin-bottom:8px}
-  .summary-step-num{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
-  .summary-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
-  .meta-chip{background:var(--gray-bg);border-radius:8px;padding:10px;text-align:center}
-  .meta-chip-num{font-size:20px;font-weight:600;color:var(--blue)}
-  .meta-chip-label{font-size:11px;color:var(--text3);margin-top:2px}
-  .export-bar{background:var(--white);border-top:1px solid var(--border);padding:12px 16px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;gap:10px;flex-shrink:0}
-  .export-btn{flex:1;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--blue);color:var(--blue);background:var(--white);font-size:14px;font-weight:500;cursor:pointer;text-align:center}
-  .export-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
-
-  /* ===== 统计页 ===== */
-  .stats-body{flex:1;overflow-y:auto;padding:12px;padding-bottom:80px}
-  .stats-overview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-  .stats-overview .stat-card:nth-child(1){grid-column:1/3;background:var(--blue);color:#fff}
-  .stat-card{background:var(--white);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
-  .stat-card .snum{font-size:24px;font-weight:700}
-  .stat-card .slabel{font-size:12px;opacity:.7;margin-top:2px}
-  .stat-card .sunit{font-size:12px;opacity:.6;margin-top:4px}
-  .stats-section{background:var(--white);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
-  .stats-sec-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-  .stat-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:13px;border-bottom:1px solid var(--gray-bg)}
-  .stat-row:last-child{border-bottom:none}
-  .stat-row-label{color:var(--text2);display:flex;align-items:center;gap:8px}
-  .stat-row-bar-wrap{flex:1;margin:0 12px;height:6px;background:var(--gray-light);border-radius:3px;overflow:hidden}
-  .stat-row-bar{height:100%;background:var(--blue);border-radius:3px;transition:width .5s}
-  .stat-row-val{font-weight:600;color:var(--blue);min-width:28px;text-align:right;font-size:12px}
-  .stat-bar-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
-  .stat-bar-label{color:var(--text2);flex:1}
-  .stat-bar-right{display:flex;align-items:center;gap:8px}
-  .stat-bar-bg{flex:1;margin:0 10px;height:8px;background:var(--gray-light);border-radius:4px;overflow:hidden}
-  .stat-bar-fill{height:100%;border-radius:4px;transition:width .5s}
-  .stat-bar-num{font-size:12px;font-weight:600;min-width:24px;text-align:right}
-  .no-data-tip{text-align:center;padding:24px;color:var(--text3);font-size:13px}
-
-  /* ===== 词库页 ===== */
-  .vocab-body{flex:1;overflow-y:auto;padding:0 12px 80px}
-  .vocab-cat-header{position:sticky;top:0;background:var(--gray-bg);padding:8px 0 6px;z-index:2;display:flex;align-items:center;justify-content:space-between}
-  .vocab-cat-title{font-size:13px;font-weight:600;color:var(--blue)}
-  .vocab-count-badge{background:var(--blue-light);color:var(--blue);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
-  .vocab-item{display:flex;background:var(--white);border-radius:var(--radius-sm);margin-bottom:6px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
-  .vocab-oral{flex:1;padding:10px 12px;font-size:13px;color:var(--text);border-right:1px solid var(--border)}
-  .vocab-written{flex:1.2;padding:10px 12px;font-size:13px;color:var(--green);font-weight:500}
-  .vocab-actions{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:0 4px}
-  .vocab-action-btn{width:26px;height:26px;border:none;background:transparent;cursor:pointer;font-size:13px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text3)}
-  .vocab-action-btn:hover{background:var(--gray-light)}
-  .vocab-empty{text-align:center;padding:32px 16px;color:var(--text3);font-size:13px}
-  .vocab-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
-  .vocab-overlay.show{opacity:1;pointer-events:all}
-  .vocab-sheet{background:var(--white);border-radius:20px 20px 0 0;padding:16px 20px calc(env(safe-area-inset-bottom,0px) + 16px);width:100%;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
-  .vocab-overlay.show .vocab-sheet{transform:translateY(0)}
-
-  /* ===== 我的页面 ===== */
-  .mine-list{background:var(--white);border-radius:var(--radius);margin:0 12px;overflow:hidden;box-shadow:var(--shadow)}
-  .mine-item{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer}
-  .mine-item:last-child{border-bottom:none}
-  .mine-item:active{background:var(--gray-bg)}
-  .mine-icon{margin-right:12px;font-size:18px}
-  .mine-arrow{margin-left:auto;color:var(--text3);font-size:18px}
-
-  /* ===== 新建页 ===== */
-  #page-new{background:var(--gray-bg)}
-  .new-body{flex:1;overflow-y:auto;padding:12px;padding-bottom:80px}
-  .form-card{background:var(--white);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
-  .form-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:6px}
-  .form-group{margin-bottom:14px}
-  .form-group:last-child{margin-bottom:0}
-  .form-label{font-size:12px;color:var(--text3);margin-bottom:6px;display:block}
-  .form-input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--gray-bg);outline:none;transition:border-color .2s;-webkit-appearance:none}
-  .form-input:focus{border-color:var(--blue);background:var(--white)}
-  .form-select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--gray-bg);outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2390A4AE' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-  .submit-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);border-top:1px solid var(--border);padding:12px 16px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:10}
-  .submit-btn{width:100%;padding:14px;border-radius:var(--radius);background:var(--blue);color:#fff;font-size:16px;font-weight:600;border:none;cursor:pointer;transition:opacity .1s}
-  .submit-btn:active{opacity:.85}
-
-  /* ===== 词库映射动画 ===== */
-  .converting{animation:fadeIn .5s ease}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-  /* ===== Toast ===== */
-  .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap}
-  .toast.show{opacity:1}
-
-  /* ===== 加载动画 ===== */
-  .ai-loading{display:flex;flex-direction:column;align-items:center;padding:24px;gap:12px}
-  .ai-dots{display:flex;gap:6px}
-  .ai-dot{width:10px;height:10px;border-radius:50%;background:var(--blue);animation:dotBounce 1.2s ease-in-out infinite}
-  .ai-dot:nth-child(2){animation-delay:.2s}
-  .ai-dot:nth-child(3){animation-delay:.4s}
-  @keyframes dotBounce{0%,80%,100%{transform:scale(.8);opacity:.5}40%{transform:scale(1.1);opacity:1}}
-  .voice-fault-btn,.photo-fault-btn{padding:6px 12px;border-radius:20px;font-size:12px;border:none;cursor:pointer;font-weight:500;transition:opacity .1s}
-  .voice-fault-btn{background:var(--blue-light);color:var(--blue)}
-  .photo-fault-btn{background:var(--orange-light);color:var(--orange)}
-  .voice-fault-btn:active,.photo-fault-btn:active{opacity:.7}
-  .fault-photo-thumb{width:56px;height:56px;border-radius:8px;overflow:hidden;position:relative;cursor:pointer;flex-shrink:0}
-  .fault-photo-thumb img{width:100%;height:100%;object-fit:cover}
-  .fault-photo-thumb .remove-btn{position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .voice-fault-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
-  .voice-fault-overlay.show{opacity:1;pointer-events:all}
-  .voice-fault-sheet{background:var(--white);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 20px);width:100%;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
-  .voice-fault-overlay.show .voice-fault-sheet{transform:translateY(0)}
-  .fault-photos-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .fault-photo-display{width:64px;height:64px;border-radius:8px;overflow:hidden;position:relative;cursor:pointer;flex-shrink:0}
-  .fault-photo-display img{width:100%;height:100%;object-fit:cover}
-  .fault-photo-display .del-btn{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;font-size:10px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .date-sep{text-align:center;padding:8px 0 4px;font-size:12px;color:var(--text3);display:flex;align-items:center;gap:10px}
-  .date-sep::before,.date-sep::after{content:'';flex:1;height:1px;background:var(--border)}
-  </style>
-  <link rel="manifest" href="/assets/manifest-CkuQmITt.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="医修宝">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='32' fill='%231565C0'/><text x='90' y='130' font-size='90' text-anchor='middle' fill='white'>🔧</text></svg>">
-  <link rel="manifest" href="/assets/manifest-CkuQmITt.json">
+/* 同原有CSS，此处省略以节省篇幅 */
+:root {
+  --primary: #3b82f6; --primary-hover: #2563eb; --bg: #f1f5f9; --card: #fff;
+  --text: #1e293b; --text-light: #64748b; --border: #e2e8f0;
+  --btn-success: #16a34a; --btn-success-hover: #15803d;
+  --btn-danger: #dc2626; --btn-danger-hover: #b91c1c;
+  --tag-green-bg: #dcfce7; --tag-green-text: #16a34a;
+  --tag-orange-bg: #fed7aa; --tag-orange-text: #ea580c;
+  --tag-red-bg: #fee2e2; --tag-red-text: #dc2626;
+  --tag-gray-bg: #f3f4f6; --tag-gray-text: #6b7280;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, 'Microsoft YaHei', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 16px; }
+.container { max-width: 1200px; margin: 0 auto; }
+h1 { font-size: 1.4rem; margin-bottom: 4px; }
+.subtitle { font-size: 0.85rem; color: var(--text-light); margin-bottom: 16px; }
+.stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.stat-card { background: var(--card); border-radius: 8px; padding: 10px 16px; min-width: 100px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.stat-card .num { font-size: 1.5rem; font-weight: 700; }
+.stat-card .label { font-size: 0.78rem; color: var(--text-light); }
+.toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.toolbar-left { display: flex; gap: 8px; flex-wrap: wrap; }
+.toolbar-right { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+input[type="text"], input[type="date"], select, textarea {
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+.btn { padding: 6px 14px; border: none; border-radius: 6px; font-size: 0.85rem; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-success { background: var(--btn-success); color: #fff; }
+.btn-success:hover { background: var(--btn-success-hover); }
+.btn-danger { background: var(--btn-danger); color: #fff; }
+.btn-danger:hover { background: var(--btn-danger-hover); }
+.btn-export { background: #16a34a; color: #fff; }
+.btn-export:hover { background: #15803d; }
+.btn-import { background: #6366f1; color: #fff; }
+.btn-import:hover { background: #4f46e5; }
+.btn-sm { padding: 3px 10px; font-size: 0.78rem; }
+.btn-edit { background: var(--primary); color: #fff; }
+.btn-edit:hover { background: var(--primary-hover); }
+.btn-delete { background: var(--btn-danger); color: #fff; }
+.btn-delete:hover { background: var(--btn-danger-hover); }
+table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-size: 0.85rem; }
+thead { background: #334155; color: #fff; }
+th { padding: 8px 10px; text-align: left; font-weight: 600; white-space: nowrap; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:hover { background: #f8fafc; }
+.center { text-align: center; }
+.muted { color: var(--text-light); font-size: 0.82rem; }
+.text-sm { font-size: 0.82rem; }
+.text-break { word-break: break-all; max-width: 180px; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.tag-green { background: var(--tag-green-bg); color: var(--tag-green-text); }
+.tag-orange { background: var(--tag-orange-bg); color: var(--tag-orange-text); }
+.tag-red { background: var(--tag-red-bg); color: var(--tag-red-text); }
+.tag-gray { background: var(--tag-gray-bg); color: var(--tag-gray-text); }
+.row-conquered td:first-child { border-left: 3px solid var(--tag-green-text); }
+.row-progress td:first-child { border-left: 3px solid var(--tag-orange-text); }
+.row-hard td:first-child { border-left: 3px solid var(--tag-red-text); }
+.action-btns { display: flex; gap: 4px; }
+#dataTable { display: none; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); background: var(--card); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
+.modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.45); display: none; z-index: 1000; justify-content: center; align-items: flex-start; padding-top: 40px; overflow-y: auto; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--card); border-radius: 10px; width: 600px; max-width: 95vw; padding: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+.modal h2 { font-size: 1.1rem; margin-bottom: 14px; }
+.form-row { display: flex; gap: 12px; margin-bottom: 10px; }
+.form-group { flex: 1; }
+.form-group label { display: block; font-size: 0.82rem; font-weight: 500; margin-bottom: 3px; }
+.required { color: var(--btn-danger); }
+.form-group input, .form-group select, .form-group textarea { width: 100%; }
+.form-group textarea { min-height: 60px; resize: vertical; }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.diff-preview { margin-top: 6px; padding: 6px 10px; background: #f8fafc; border-radius: 6px; font-size: 0.82rem; display: none; }
+.diff-preview.active { display: block; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 8px 20px; border-radius: 8px; background: #334155; color: #fff; font-size: 0.85rem; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.toast.success { background: var(--btn-success); }
+.toast.error { background: var(--btn-danger); }
+@media (max-width: 640px) {
+  body { padding: 8px; }
+  .form-row { flex-direction: column; gap: 8px; }
+  .toolbar { flex-direction: column; }
+  .toolbar-right { margin-left: 0; }
+  table { font-size: 0.78rem; }
+  th, td { padding: 5px 6px; }
+}
+</style>
 </head>
 <body>
-<div id="app">
-  <!-- ===== 统计页 ===== -->
-  <div id="page-stats" class="page hidden">
-    <div class="top-bar">
-      <button class="back-btn" onclick="switchTab('list')" title="返回首页">🏠</button>
-      <div class="top-info">
-        <div class="top-title">维修统计</div>
-        <div class="top-sub">数据总览与分析</div>
-      </div>
-    </div>
-    <div class="stats-body" id="statsBody"></div>
+
+<div class="container">
+  <h1>天勤零件维修记录表</h1>
+  <p class="subtitle">在线共享版 · 数据实时同步</p>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num" id="totalCount">0</div><div class="label">总记录</div></div>
+    <div class="stat-card"><div class="num" id="conqueredCount" style="color:var(--tag-green-text)">0</div><div class="label">已攻克</div></div>
+    <div class="stat-card"><div class="num" id="progressCount" style="color:var(--tag-orange-text)">0</div><div class="label">有进展</div></div>
+    <div class="stat-card"><div class="num" id="hardCount" style="color:var(--tag-red-text)">0</div><div class="label">难度大</div></div>
   </div>
 
-  <!-- ===== 词库页 ===== -->
-  <div id="page-vocab" class="page hidden">
-    <div class="top-bar">
-      <button class="back-btn" onclick="switchTab('list')" title="返回首页">🏠</button>
-      <div class="top-info">
-        <div class="top-title">专业词库</div>
-        <div class="top-sub">口语 ↔ 书面语对照</div>
-      </div>
-      <div class="top-actions">
-        <button class="icon-btn" onclick="showAddVocab()" title="添加词条">＋</button>
-      </div>
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button class="btn btn-primary" onclick="openAddModal()">+ 添加记录</button>
+      <input type="text" id="searchInput" placeholder="搜索零件/人员/机型..." style="width:180px;">
+      <select id="difficultyFilter"><option value="">全部难度</option><option value="已攻克">已攻克</option><option value="有进展">有进展</option><option value="难度大">难度大</option></select>
+      <select id="resultFilter"><option value="">全部结果</option><option value="已修复">已修复</option><option value="部分修复">部分修复</option><option value="待跟进">待跟进</option></select>
     </div>
-    <div style="padding:10px 12px 6px">
-      <div style="display:flex;gap:8px;align-items:center">
-        <div style="flex:1;position:relative">
-          <input type="text" id="vocabSearchInput" placeholder="搜索口语或书面语..." oninput="renderVocabList(this.value)" style="width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;outline:none;background:var(--white)">
-          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.6;font-size:13px">🔍</span>
-        </div>
-        <select id="vocabFilterSelect" onchange="renderVocabList(document.getElementById('vocabSearchInput').value)" style="padding:9px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--white);outline:none;color:var(--text)">
-          <option value="">全部分类</option>
-          <option value="ct">CT类</option>
-          <option value="mri">MRI类</option>
-          <option value="gen">通用维修</option>
+    <div class="toolbar-right">
+      <button class="btn btn-export" onclick="exportExcel()">导出Excel</button>
+      <button class="btn btn-import" onclick="document.getElementById('importFile').click()">导入JSON</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-danger" onclick="confirmClearAll()">清空数据</button>
+    </div>
+  </div>
+
+  <div id="emptyState" class="empty-state">
+    <div class="icon">📋</div>
+    <p>暂无维修记录</p>
+    <p style="font-size:0.82rem;margin-top:6px;">点击「添加记录」开始</p>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th style="width:45px;">序号</th>
+          <th style="min-width:120px;">零件名称</th>
+          <th style="min-width:80px;">维修人员</th>
+          <th style="min-width:160px;">适用机型</th>
+          <th style="min-width:160px;">故障描述</th>
+          <th style="min-width:160px;">维修内容</th>
+          <th style="width:90px;" class="center">维修难度</th>
+          <th style="min-width:120px;">难度备注</th>
+          <th style="width:90px;" class="center">维修结果</th>
+          <th style="min-width:120px;">备注</th>
+          <th style="min-width:140px;">更新时间</th>
+          <th style="width:110px;" class="center">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 编辑弹窗 -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2 id="modalTitle">添加维修记录</h2>
+    <input type="hidden" id="editId">
+    <div class="form-row">
+      <div class="form-group"><label>零件名称 <span class="required">*</span></label><input type="text" id="fPartName" placeholder="如：X射线管"></div>
+      <div class="form-group"><label>维修人员 <span class="required">*</span></label><input type="text" id="fRepairPerson" placeholder="如：张工"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>适用机型</label><input type="text" id="fMachineModel" placeholder="如：Philips Brilliance 64排"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>故障描述</label><textarea id="fFaultDesc" placeholder="描述故障现象"></textarea></div>
+      <div class="form-group"><label>维修内容</label><textarea id="fRepairContent" placeholder="描述维修过程和结果"></textarea></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>维修难度 <span class="required">*</span></label>
+        <select id="fDifficulty" onchange="updateDifficultyPreview()">
+          <option value="">请选择</option>
+          <option value="已攻克">已攻克</option>
+          <option value="有进展">有进展</option>
+          <option value="难度大">难度大</option>
+        </select>
+        <div class="diff-preview" id="diffPreview"></div>
+      </div>
+      <div class="form-group">
+        <label>维修结果</label>
+        <select id="fResult">
+          <option value="已修复">已修复</option>
+          <option value="部分修复">部分修复</option>
+          <option value="待跟进">待跟进</option>
         </select>
       </div>
     </div>
-    <div class="vocab-body" id="vocabBody"></div>
-  </div>
-
-  <!-- 词库添加/编辑浮层 -->
-  <div class="vocab-overlay" id="vocabOverlay" onclick="closeVocabOverlay(event)">
-    <div class="vocab-sheet">
-      <div class="record-handle"></div>
-      <div class="record-title" id="vocabSheetTitle">添加词条</div>
-      <div id="vocabEditId" style="display:none"></div>
-      <div class="form-group">
-        <label class="form-label">口语表达</label>
-        <input type="text" class="form-input" id="vocabOralInput" placeholder="例如：把球管换了">
-      </div>
-      <div class="form-group">
-        <label class="form-label">书面语对应</label>
-        <input type="text" class="form-input" id="vocabWrittenInput" placeholder="例如：更换X射线管组件">
-      </div>
-      <div class="form-group">
-        <label class="form-label">分类</label>
-        <select class="form-select" id="vocabCatSelect" style="font-size:13px">
-          <option value="gen">通用维修</option>
-          <option value="ct">CT类</option>
-          <option value="mri">MRI类</option>
-        </select>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="export-btn" onclick="closeVocabOverlay(null)" style="flex:1;padding:12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--white);color:var(--text);font-size:14px">取消</button>
-        <button class="export-btn primary" onclick="saveVocabItem()" style="flex:1;padding:12px;border-radius:var(--radius-sm);border:none;font-size:14px">保存</button>
-      </div>
+    <div class="form-row">
+      <div class="form-group"><label>难度备注</label><textarea id="fDiffRemark" placeholder="详细说明难度情况"></textarea></div>
+      <div class="form-group"><label>备注</label><textarea id="fRemark" placeholder="其他说明"></textarea></div>
     </div>
-  </div>
-
-  <!-- ===== 我的页面 ===== -->
-  <div id="page-mine" class="page hidden">
-    <div class="top-bar">
-      <button class="back-btn" onclick="switchTab('list')" title="返回首页">🏠</button>
-      <div class="top-info">
-        <div class="top-title">我的</div>
-        <div class="top-sub">数据管理与设置</div>
-      </div>
-    </div>
-    <div style="padding:20px 16px;text-align:center">
-      <div style="font-size:48px;margin-bottom:8px">👤</div>
-      <div style="font-size:16px;font-weight:600;color:var(--text)">医修宝</div>
-      <div style="font-size:13px;color:var(--text3);margin-top:4px">v1.0 · 医疗器械维修助手</div>
-    </div>
-    <div class="mine-list">
-      <div class="mine-item" onclick="exportAllData()"><span class="mine-icon">📤</span><span>导出全部数据</span><span class="mine-arrow">›</span></div>
-      <div class="mine-item" onclick="importData()"><span class="mine-icon">📥</span><span>导入数据</span><span class="mine-arrow">›</span></div>
-      <div class="mine-item" onclick="clearAllData()"><span class="mine-icon" style="color:var(--red)">🗑</span><span style="color:var(--red)">清除所有记录</span><span class="mine-arrow">›</span></div>
-    </div>
-    <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="handleImport(event)">
-  </div>
-
-  <!-- ===== 主列表页 ===== -->
-  <div id="page-list" class="page" style="top:0">
-    <div class="list-header">
-      <div class="list-header-top">
-        <span class="app-name">医修宝</span>
-        <span class="app-badge">医疗器械维修记录</span>
-      </div>
-      <div class="list-search">
-        <span style="opacity:.7;font-size:14px">🔍</span>
-        <input type="text" placeholder="搜索设备、故障类型..." id="searchInput" oninput="filterList(this.value)">
-      </div>
-      <div class="list-stats">
-        <div class="stat-item"><div class="stat-num" id="statTotal">3</div><div class="stat-label">总记录</div></div>
-        <div class="stat-item"><div class="stat-num" id="statDone">2</div><div class="stat-label">已完成</div></div>
-        <div class="stat-item"><div class="stat-num" id="statDays">12</div><div class="stat-label">本月天数</div></div>
-        <div class="stat-item"><div class="stat-num" id="statPhotos">8</div><div class="stat-label">照片数</div></div>
-      </div>
-    </div>
-    <div class="list-body" id="listBody"></div>
-    <button class="fab" onclick="goNew()" title="新建记录">＋</button>
-    <div class="tab-bar">
-      <button class="tab-item active" onclick="switchTab('list',this)"><span class="tab-icon">📋</span>记录</button>
-      <button class="tab-item" onclick="switchTab('stats',this)"><span class="tab-icon">📊</span>统计</button>
-      <button class="tab-item" onclick="switchTab('vocab',this)"><span class="tab-icon">📖</span>词库</button>
-      <button class="tab-item" onclick="switchTab('mine',this)"><span class="tab-icon">👤</span>我的</button>
-    </div>
-  </div>
-
-  <!-- ===== 新建/编辑页 ===== -->
-  <div id="page-new" class="page hidden">
-    <div class="top-bar">
-      <button class="back-btn" onclick="goBack('page-list')">←</button>
-      <div class="top-info">
-        <div class="top-title">新建维修记录</div>
-        <div class="top-sub">填写基本信息后开始语音记录</div>
-      </div>
-    </div>
-    <div class="new-body">
-      <div class="form-card">
-        <div class="form-title"><span>🏥</span> 设备信息</div>
-        <div class="form-group">
-          <label class="form-label">设备名称 *</label>
-          <select class="form-select" id="deviceType" onchange="updateDeviceInfo()">
-            <option value="">请选择设备类型</option>
-            <optgroup label="GE MRI">
-              <option value="GE Optima MR360">GE Optima MR360</option>
-              <option value="GE Brivo MR355">GE Brivo MR355</option>
-              <option value="GE Discovery MR750">GE Discovery MR750</option>
-            </optgroup>
-            <optgroup label="Siemens CT">
-              <option value="Siemens SOMATOM Drive">Siemens SOMATOM Drive</option>
-              <option value="Siemens SOMATOM Definition">Siemens SOMATOM Definition</option>
-              <option value="Siemens Emotion 16">Siemens Emotion 16</option>
-            </optgroup>
-            <optgroup label="Siemens MRI">
-              <option value="Siemens MAGNETOM Avanto">Siemens MAGNETOM Avanto</option>
-              <option value="Siemens MAGNETOM Skyra">Siemens MAGNETOM Skyra</option>
-            </optgroup>
-            <optgroup label="Canon CT">
-              <option value="Canon Aquilion one">Canon Aquilion one</option>
-              <option value="Canon Aquilion Lighting">Canon Aquilion Lighting</option>
-              <option value="Canon Aquilion CX/CXL">Canon Aquilion CX/CXL</option>
-              <option value="Canon Aquilion PRIME">Canon Aquilion PRIME</option>
-              <option value="Canon Aquilion GENESIS">Canon Aquilion GENESIS</option>
-              <option value="Canon Aquilion Platinum">Canon Aquilion Platinum</option>
-            </optgroup>
-            <optgroup label="其他">
-              <option value="custom">自定义输入...</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="form-group" id="customDeviceGroup" style="display:none">
-          <label class="form-label">自定义设备名称</label>
-          <input type="text" class="form-input" id="customDevice" placeholder="输入设备名称">
-        </div>
-        <div class="form-group">
-          <label class="form-label">序列号 / 资产编号</label>
-          <input type="text" class="form-input" id="serialNum" placeholder="例：SN-20381 或 Asset-CT-001">
-        </div>
-        <div class="form-group">
-          <label class="form-label">所在科室</label>
-          <input type="text" class="form-input" id="department" placeholder="例：放射科、MRI室">
-        </div>
-      </div>
-      <div class="form-card">
-        <div class="form-title"><span>⚡</span> 故障信息</div>
-        <div class="form-group">
-          <label class="form-label">故障类型 *</label>
-          <select class="form-select" id="faultType">
-            <option value="">请选择故障类型</option>
-            <optgroup label="CT故障">
-              <option>球管故障</option>
-              <option>探测器故障</option>
-              <option>高压发生器故障</option>
-              <option>冷却系统故障</option>
-              <option>机架旋转故障</option>
-            </optgroup>
-            <optgroup label="MRI故障">
-              <option>梯度线圈故障</option>
-              <option>射频线圈故障</option>
-              <option>冷头/压缩机故障</option>
-              <option>匀场故障</option>
-              <option>前置放大器故障</option>
-            </optgroup>
-            <optgroup label="通用">
-              <option>电源系统故障</option>
-              <option>软件/系统故障</option>
-              <option>网络/通信故障</option>
-              <option>其他故障</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">故障代码（如有）</label>
-          <input type="text" class="form-input" id="errorCode" placeholder="例：Error 0x4A21">
-          <div style="margin-top:6px">
-            <button type="button" class="photo-fault-btn" onclick="addErrorPhoto()">📷 故障代码照片</button>
-            <div id="errorPhotosPreview" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"></div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">故障现象描述</label>
-          <textarea class="form-input" id="faultDesc" rows="2" placeholder="简述故障现象，或用语音记录..." style="resize:none;line-height:1.6"></textarea>
-          <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
-            <button type="button" class="voice-fault-btn" onclick="startVoiceFaultDesc()">🎙 语音描述</button>
-            <button type="button" class="photo-fault-btn" onclick="addFaultPhoto()">📷 添加照片</button>
-          </div>
-          <div id="faultPhotosPreview" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"></div>
-        </div>
-      </div>
-      <div class="form-card">
-        <div class="form-title"><span>👨‍🔧</span> 维修人员</div>
-        <div class="form-group">
-          <label class="form-label">维修工程师</label>
-          <input type="text" class="form-input" id="engineer" placeholder="姓名">
-        </div>
-        <div class="form-group">
-          <label class="form-label">维修日期</label>
-          <input type="date" class="form-input" id="repairDate">
-        </div>
-      </div>
-    </div>
-    <div class="submit-bar">
-      <button class="submit-btn" onclick="startRepairRecord()">✓ 确认并开始记录维修过程</button>
-    </div>
-  </div>
-
-  <!-- ===== 记录详情页 ===== -->
-  <div id="page-detail" class="page hidden">
-    <div class="top-bar">
-      <button class="back-btn" onclick="goBack('page-list')">←</button>
-      <div class="top-info">
-        <div class="top-title" id="detailTitle">维修记录</div>
-        <div class="top-sub" id="detailSub">-</div>
-      </div>
-      <div class="top-actions">
-        <button class="icon-btn" onclick="showSummary()" title="查看总结">📄</button>
-        <button class="icon-btn" onclick="addVoiceStep()" title="添加语音">🎙</button>
-      </div>
-    </div>
-    <div class="detail-body" id="detailBody"></div>
-  </div>
-
-  <!-- ===== 总结页 ===== -->
-  <div id="page-summary" class="page hidden">
-    <div class="top-bar">
-      <button class="back-btn" onclick="goBack('page-detail')">←</button>
-      <div class="top-info">
-        <div class="top-title">维修总结报告</div>
-        <div class="top-sub" id="summaryDeviceName">-</div>
-      </div>
-      <button class="icon-btn" onclick="regenerateSummary()" title="重新生成">🔄</button>
-    </div>
-    <div class="summary-body" id="summaryBody"></div>
-    <div class="export-bar">
-      <button class="export-btn" onclick="copyText()">📋 复制文本</button>
-      <button class="export-btn primary" onclick="shareSummary()">📤 分享报告</button>
+    <div class="modal-btns">
+      <button class="btn" style="background:var(--border);" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveRecord()">保存</button>
     </div>
   </div>
 </div>
 
-<!-- ===== 录音浮层 ===== -->
-<div class="record-overlay" id="recordOverlay" onclick="overlayClick(event)">
-  <div class="record-sheet">
-    <div class="record-handle"></div>
-    <div class="record-title" id="recordTitle">添加维修步骤</div>
-    <div class="record-sub" id="recordSub">按下麦克风开始语音记录</div>
-    <div class="transcript-preview" id="transcriptPreview">
-      <div class="tp-label">识别结果</div>
-      <div class="tp-oral" id="tpOral" style="color:var(--text3);font-style:italic">等待录音...</div>
+<!-- 确认弹窗 -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal" style="max-width:400px;">
+    <h2>确认操作</h2>
+    <p id="confirmMsg" style="margin:14px 0;font-size:0.9rem;"></p>
+    <div class="modal-btns">
+      <button class="btn" style="background:var(--border);" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirmOkBtn">确认</button>
     </div>
-    <!-- 已识别内容提示（继续录音时显示） -->
-    <div class="append-hint hidden-btn" id="appendHint">
-      <span>📝 已识别内容将保留，继续录音将追加</span>
-    </div>
-    <div class="waveform-container" id="waveformContainer">
-      <div class="wave-bar" id="w1" style="height:8px"></div>
-      <div class="wave-bar" id="w2" style="height:8px"></div>
-      <div class="wave-bar" id="w3" style="height:8px"></div>
-      <div class="wave-bar" id="w4" style="height:8px"></div>
-      <div class="wave-bar" id="w5" style="height:8px"></div>
-      <div class="wave-bar" id="w6" style="height:8px"></div>
-      <div class="wave-bar" id="w7" style="height:8px"></div>
-      <div class="wave-bar" id="w8" style="height:8px"></div>
-      <div class="wave-bar" id="w9" style="height:8px"></div>
-      <div class="wave-bar" id="w10" style="height:8px"></div>
-      <div class="wave-bar" id="w11" style="height:8px"></div>
-      <div class="wave-bar" id="w12" style="height:8px"></div>
-    </div>
-    <div class="record-timer" id="recordTimer">00:00</div>
-    <div class="record-btn-row">
-      <button class="cancel-btn" onclick="cancelRecord()" title="取消">✕</button>
-      <button class="mic-btn" id="micBtn" onclick="toggleRecord()" title="开始录音">
-        <div class="pulse-ring"></div>
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <rect x="9" y="2" width="6" height="12" rx="3" fill="white" stroke="none"/>
-          <path d="M5 10a7 7 0 0014 0"/>
-          <line x1="12" y1="17" x2="12" y2="21"/>
-          <line x1="9" y1="21" x2="15" y2="21"/>
-        </svg>
-      </button>
-      <button class="confirm-btn hidden-btn" id="confirmBtn" onclick="confirmStep()" title="确认">✓</button>
-    </div>
-    <div style="text-align:center;font-size:12px;color:var(--text3);margin-top:-4px" id="recordHint">点击麦克风开始录音</div>
-    <!-- 继续录音按钮 -->
-    <button class="append-btn hidden-btn" id="appendBtn" onclick="appendMoreRecord()" title="追加更多内容">＋ 继续录音</button>
   </div>
-</div>
-
-<!-- 故障描述语音浮层 -->
-<div class="voice-fault-overlay" id="voiceFaultOverlay" onclick="closeVoiceFault(event)">
-  <div class="voice-fault-sheet">
-    <div class="record-handle"></div>
-    <div class="record-title">语音描述故障现象</div>
-    <div class="record-sub">说出你观察到的故障现象</div>
-    <div class="transcript-preview" id="faultTransPreview">
-      <div class="tp-label">识别结果</div>
-      <div class="tp-oral" id="faultTpOral" style="color:var(--text3);font-style:italic">等待录音...</div>
-    </div>
-    <div class="record-timer" id="faultRecordTimer">00:00</div>
-    <div class="record-btn-row">
-      <button class="cancel-btn" onclick="closeVoiceFault(null)">✕</button>
-      <button class="mic-btn" id="faultMicBtn" onclick="toggleFaultRecord()" title="开始录音">
-        <div class="pulse-ring"></div>
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <rect x="9" y="2" width="6" height="12" rx="3" fill="white" stroke="none"/>
-          <path d="M5 10a7 7 0 0014 0"/>
-          <line x1="12" y1="17" x2="12" y2="21"/>
-          <line x1="9" y1="21" x2="15" y2="21"/>
-        </svg>
-      </button>
-      <button class="confirm-btn hidden-btn" id="faultConfirmBtn" onclick="confirmFaultText()">✓</button>
-    </div>
-    <div style="text-align:center;font-size:12px;color:var(--text3)" id="faultRecordHint">点击麦克风开始录音</div>
-  </div>
-</div>
-
-<!-- 故障照片输入 -->
-<input type="file" id="faultPhotoInput" accept="image/*" style="display:none" onchange="handleFaultPhoto(event)">
-<!-- 故障代码照片输入 -->
-<input type="file" id="errorPhotoInput" accept="image/*" style="display:none" onchange="handleErrorPhoto(event)">
-
-<!-- 照片查看浮层 -->
-<div class="photo-overlay" id="photoOverlay" onclick="closePhoto()">
-  <button class="photo-close" onclick="closePhoto()">✕</button>
-  <img id="photoFullImg" src="" alt="">
 </div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- 隐藏的文件输入 -->
-<input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhotoInput(event)">
-
 <script>
-// ============================================================
-// 数据层
-// ============================================================
-const DB_KEY = 'medrepair_v2';
+// ===== API模式 =====
+let records = [];
+let nextId = 1;
+let confirmCallback = null;
+const API = '';
 
-// 医疗器械专业词库（口语 → 书面语）
-const VOCAB = [
-  {oral:'把管子换了',written:'更换X射线管组件'},
-  {oral:'线圈坏了',written:'射频线圈模块故障'},
-  {oral:'线圈坏掉了',written:'射频线圈模块故障'},
-  {oral:'梯度线圈坏了',written:'梯度线圈模块故障'},
-  {oral:'扫一遍看看',written:'执行系统自检程序'},
-  {oral:'跑个自检',written:'执行系统自检程序'},
-  {oral:'把水排干净',written:'排空冷却液管路残留液体'},
-  {oral:'水排干净',written:'排空冷却液管路残留液体'},
-  {oral:'重新上电',written:'重新执行上电初始化序列'},
-  {oral:'重启一下',written:'重启系统并执行初始化'},
-  {oral:'校一下场',written:'执行磁场均匀性校准'},
-  {oral:'匀场校准',written:'执行主磁场均匀性校准'},
-  {oral:'换备件',written:'更换相应备用部件'},
-  {oral:'换配件',written:'更换对应维修配件'},
-  {oral:'拆开看看',written:'拆卸模块进行详细检查'},
-  {oral:'量一下电压',written:'测量各测试点电压值'},
-  {oral:'测测电压',written:'测量各测试点电压值'},
-  {oral:'冷头坏了',written:'低温冷头（冷却单元）故障'},
-  {oral:'压缩机不转了',written:'冷却压缩机停止运转'},
-  {oral:'冷头不工作',written:'低温冷头未正常运行'},
-  {oral:'球管过热',written:'X射线管过热保护触发'},
-  {oral:'探测器有问题',written:'探测器模块存在异常'},
-  {oral:'高压坏了',written:'高压发生器模块故障'},
-  {oral:'机架转不动',written:'机架旋转系统故障'},
-  {oral:'失超了',written:'出现磁场失超（Quench）现象'},
-  {oral:'氦气跑了',written:'液氦挥发，需要补充液氦'},
-  {oral:'跑起来测测',written:'启动设备执行性能测试'},
-  {oral:'做个扫描',written:'执行测试扫描序列'},
-  {oral:'看看日志',written:'查阅系统错误日志'},
-  {oral:'清一下错误',written:'清除系统错误代码记录'},
-];
-
-// 初始演示数据
-const DEMO_RECORDS = [
-  {
-    id:'rec-001', device:'Canon Aquilion one', serial:'SN-CT-AQ1-01', dept:'放射科',
-    fault:'球管故障', errorCode:'Error 0x4A21', faultDesc:'CT球管过热保护触发，扫描中止',
-    engineer:'李工', date:'2026-05-12', status:'done', createdAt:'2026-05-12T09:00:00',
-    faultPhotos:[], errorPhotos:[],
-    steps:[
-      {id:'s1',text:'检查主机房电源供应，确认输入电压为380V±10%，三相平衡，符合设备运行要求。',oral:'检查一下电源，三相电压都在范围内，没问题',time:'09:15',date:'2026-05-12',photos:[]},
-      {id:'s2',text:'读取故障代码 Error 0x4A21：X射线管过热保护触发，管温超过摄氏190度，冷却系统液位不足报警。',oral:'读了一下错误代码，是0x4A21，球管超温了，冷却液也不够了',time:'09:22',date:'2026-05-12',photos:[]},
-      {id:'s3',text:'排空球管冷却系统水路中的残留液体，检查发现液位仅剩正常值的40%。',oral:'把那个球管冷却系统的水路给排干净了，液位只剩四成',time:'09:35',date:'2026-05-12',photos:[]},
-      {id:'s4',text:'补充冷却液至标准液位，重新执行上电初始化序列，检查冷却系统循环是否正常。',oral:'加了冷却液，重新上电，冷却循环看着正常了',time:'09:50',date:'2026-05-12',photos:[]},
-      {id:'s5',text:'执行系统自检程序，观察球管温度曲线，确认温度恢复至正常工作范围（低于160°C）。',oral:'跑个自检，看球管温度，恢复正常了',time:'10:05',date:'2026-05-12',photos:[]},
-      {id:'s6',text:'执行测试扫描序列，图像质量正常，球管运行稳定，故障排除。',oral:'做了一个测试扫描，图像正常，可以交机了',time:'10:20',date:'2026-05-12',photos:[]},
-    ]
-  },
-  {
-    id:'rec-002', device:'Canon Aquilion PRIME', serial:'SN-CT-AP-02', dept:'CT室',
-    fault:'探测器故障', errorCode:'Detector Err 03', faultDesc:'探测器报错误，图像出现环形伪影',
-    engineer:'张工', date:'2026-05-13', status:'ing', createdAt:'2026-05-13T14:00:00',
-    faultPhotos:[], errorPhotos:[],
-    steps:[
-      {id:'s1',text:'确认故障现象：探测器报错误代码 Detector Err 03，图像出现明显环形伪影，无法用于诊断。',oral:'接到报修，探测器有错误03，图像有环伪影',time:'14:05',date:'2026-05-13',photos:[]},
-      {id:'s2',text:'执行探测器校准程序，尝试清除伪影，校准后伪影仍然存在。',oral:'跑了探测器校准，但伪影还在',time:'14:30',date:'2026-05-13',photos:[]},
-      {id:'s3',text:'检查探测器模块供电，发现其中一路16V辅助电源输出偏低（14.2V），可能影响探测器信号处理。',oral:'测了探测器供电，有一路电压偏低，只有14.2伏',time:'15:10',date:'2026-05-13',photos:[]},
-      {id:'s4',text:'更换探测器16V辅助电源模块，重新上电后电压恢复正常（16.1V），再次执行校准。',oral:'换了那路16伏电源，重新上电，电压正常了，再跑校准',time:'16:00',date:'2026-05-13',photos:[]},
-      {id:'s5',text:'执行水模扫描测试，图像质量恢复正常，环形伪影消失，各项参数满足临床要求。',oral:'做了水模扫描，图像正常了，环伪影没了，可以交机了',time:'16:40',date:'2026-05-13',photos:[]},
-    ]
-  },
-  {
-    id:'rec-003', device:'Siemens MAGNETOM Avanto', serial:'MR-30041', dept:'MRI二室',
-    fault:'梯度线圈故障', errorCode:'Gradient Error 15', faultDesc:'梯度放大器报错，部分序列无法执行',
-    engineer:'李工', date:'2026-05-14', status:'ing', createdAt:'2026-05-14T10:00:00',
-    faultPhotos:[], errorPhotos:[],
-    steps:[
-      {id:'s1',text:'确认故障现象：设备报 Gradient Error 15，Z轴梯度通道异常，部分扫描序列执行失败。',oral:'故障是Z轴梯度有问题，梯度错误15',time:'10:10',date:'2026-05-14',photos:[]},
-      {id:'s2',text:'查阅服务手册，确认 Gradient Error 15 可能原因：梯度放大器模块故障或冷却不足。',oral:'看了一下手册，可能是梯度放大器坏了，或者冷却有问题',time:'10:30',date:'2026-05-14',photos:[]},
-    ]
-  }
-];
-
-function loadDB(){
-  try{
-    const raw = localStorage.getItem(DB_KEY);
-    if(!raw) return JSON.parse(JSON.stringify(DEMO_RECORDS));
-    const data = JSON.parse(raw);
-    // 兼容旧数据：补充faultPhotos/errorPhotos/step.date
-    data.forEach(r=>{
-      if(!r.faultPhotos) r.faultPhotos = [];
-      if(!r.errorPhotos) r.errorPhotos = [];
-      (r.steps||[]).forEach(s=>{ if(!s.date) s.date = r.date; });
-    });
-    return data;
-  }catch(e){return JSON.parse(JSON.stringify(DEMO_RECORDS))}
+async function apiGet() {
+  const res = await fetch(API + '/api/records');
+  const data = await res.json();
+  if (data.success) { records = data.records || []; nextId = data.nextId || 1; }
 }
-function saveDB(records){
-  localStorage.setItem(DB_KEY, JSON.stringify(records));
-  updateStats(records);
+async function apiPost(rec) {
+  return fetch(API + '/api/records', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(rec) }).then(r=>r.json());
 }
-let records = loadDB();
-let currentRecordId = null;
-let photoTargetStep = null; // 当前要添加照片的步骤id
-let faultPhotos = [];        // 故障描述照片（新建页）
-let errorPhotos = [];        // 故障代码照片（新建页）
+async function apiPut(id, rec) {
+  return fetch(API + '/api/records/' + id, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(rec) }).then(r=>r.json());
+}
+async function apiDelete(id) {
+  return fetch(API + '/api/records/' + id, { method:'DELETE' }).then(r=>r.json());
+}
+async function apiClearAll() {
+  return fetch(API + '/api/records', { method:'DELETE' }).then(r=>r.json());
+}
+async function apiBulk(recordsArr) {
+  return fetch(API + '/api/records/bulk', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({records:recordsArr}) }).then(r=>r.json());
+}
 
-// ============================================================
-// 词库转换
-// ============================================================
-// ============================================================
-// 统计页渲染
-// ============================================================
-function renderStatsPage(recs){
-  const body = document.getElementById('statsBody');
-  if(!recs || recs.length === 0){
-    body.innerHTML = `<div class="no-data-tip"><div style="font-size:40px;margin-bottom:12px">📊</div><div>暂无维修记录</div></div>`;
-    return;
-  }
-  const total = recs.length;
-  const done = recs.filter(r=>r.status==='done').length;
-  const ing = total - done;
-  const thisMonth = new Date().toISOString().slice(0,7);
-  const monthRecs = recs.filter(r=>r.date.startsWith(thisMonth));
-  const monthDays = new Set(monthRecs.map(r=>r.date)).size;
-  const monthTotal = monthRecs.length;
-  const monthDone = monthRecs.filter(r=>r.status==='done').length;
+async function init() {
+  await loadData();
+  renderTable();
+  document.getElementById('editModal').addEventListener('click', function(e) { if (e.target===this) closeModal(); });
+  document.getElementById('confirmOverlay').addEventListener('click', function(e) { if (e.target===this) closeConfirm(); });
+  document.addEventListener('keydown', function(e) { if (e.key==='Escape') { closeModal(); closeConfirm(); } });
+  document.getElementById('searchInput').addEventListener('input', renderTable);
+  document.getElementById('difficultyFilter').addEventListener('change', renderTable);
+  document.getElementById('resultFilter').addEventListener('change', renderTable);
+}
 
-  // 设备分布
-  const deviceMap = {};
-  recs.forEach(r=>{ deviceMap[r.device] = (deviceMap[r.device]||0)+1; });
-  const deviceSorted = Object.entries(deviceMap).sort((a,b)=>b[1]-a[1]);
-  const maxDevice = deviceSorted[0]?deviceSorted[0][1]:1;
-  const deviceColors = ['#1565C0','#2E7D32','#E65100','#7B1FA2','#C62828','#00838F'];
-  const deviceBars = deviceSorted.map(([d,c],i)=>`
-    <div class="stat-bar-row">
-      <span class="stat-bar-label">${d.length>18?d.slice(0,16)+'..':d}</span>
-      <div class="stat-bar-right">
-        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${(c/maxDevice*100).toFixed(0)}%;background:${deviceColors[i%deviceColors.length]}"></div></div>
-        <span class="stat-bar-num" style="color:${deviceColors[i%deviceColors.length]}">${c}</span>
-      </div>
-    </div>
-  `).join('');
+async function loadData() {
+  try { await apiGet(); } catch(e) { showToast('无法连接服务器', 'error'); records=[]; nextId=1; }
+}
 
-  // 故障类型分布
-  const faultMap = {};
-  recs.forEach(r=>{ faultMap[r.fault] = (faultMap[r.fault]||0)+1; });
-  const faultSorted = Object.entries(faultMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const maxFault = faultSorted[0]?faultSorted[0][1]:1;
-  const faultColors = ['#1976D2','#388E3C','#F57C00','#7B1FA2','#D32F2F','#00695C'];
-  const faultBars = faultSorted.map(([f,c],i)=>`
-    <div class="stat-bar-row">
-      <span class="stat-bar-label">${f}</span>
-      <div class="stat-bar-right">
-        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${(c/maxFault*100).toFixed(0)}%;background:${faultColors[i%faultColors.length]}"></div></div>
-        <span class="stat-bar-num" style="color:${faultColors[i%faultColors.length]}">${c}</span>
-      </div>
-    </div>
-  `).join('');
-
-  // 月度趋势（近6个月）
-  const months = [];
-  for(let i=5;i>=0;i--){
-    const d = new Date();
-    d.setDate(1); d.setMonth(d.getMonth()-i);
-    months.push(d.toISOString().slice(0,7));
-  }
-  const monthData = months.map(m=>({month:m, count:recs.filter(r=>r.date.startsWith(m)).length}));
-  const maxMonth = Math.max(...monthData.map(m=>m.count),1);
-  const monthBars = monthData.map(m=>{
-    const label = m.month.slice(5)+'月';
-    return `
-    <div style="flex:1;text-align:center">
-      <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:4px">${m.count}</div>
-      <div class="stat-bar-bg" style="height:60px;display:flex;align-items:flex-end;margin:0">
-        <div class="stat-bar-fill" style="width:100%;height:${m.count>0?(m.count/maxMonth*100).toFixed(0)+'%':'0'};background:var(--blue)"></div>
-      </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:4px">${label}</div>
-    </div>`;
+function renderTable() {
+  const tbody=document.getElementById('tableBody');
+  const emptyState=document.getElementById('emptyState');
+  const table=document.getElementById('dataTable');
+  const search=document.getElementById('searchInput').value.trim().toLowerCase();
+  const diffFilter=document.getElementById('difficultyFilter').value;
+  const resultFilter=document.getElementById('resultFilter').value;
+  let filtered=records.filter(r=>{
+    if(diffFilter&&r.difficulty!==diffFilter)return false;
+    if(resultFilter&&r.result!==resultFilter)return false;
+    if(search){const h=(r.partName+r.repairPerson+r.machineModel+r.faultDesc+r.remark).toLowerCase();if(!h.includes(search))return false;}
+    return true;
+  });
+  filtered.sort((a,b)=>b.id-a.id);
+  updateStats();
+  if(filtered.length===0){tbody.innerHTML='';table.style.display='none';emptyState.style.display='block';return;}
+  table.style.display='';emptyState.style.display='none';
+  tbody.innerHTML=filtered.map((r,i)=>{
+    const dc=getDifficultyClass(r.difficulty), rc=getRowClass(r.difficulty), rt=getResultTag(r.result);
+    const ct=r.createdAt?formatTime(r.createdAt):'<span class="muted">-</span>';
+    return `<tr class="${rc}"><td class="center muted">${i+1}</td><td><strong>${esc(r.partName)}</strong></td><td>${esc(r.repairPerson)}</td><td class="text-sm">${esc(r.machineModel)}</td><td class="text-sm text-break">${esc(r.faultDesc)||'<span class="muted">-</span>'}</td><td class="text-sm text-break">${esc(r.repairContent)||'<span class="muted">-</span>'}</td><td class="center"><span class="tag ${dc}">${esc(r.difficulty)||'-'}</span></td><td class="text-sm text-break">${esc(r.diffRemark)||'<span class="muted">-</span>'}</td><td class="center">${rt}</td><td class="text-sm text-break">${esc(r.remark)||'<span class="muted">-</span>'}</td><td class="text-sm muted">${ct}</td><td class="center"><div class="action-btns"><button class="btn btn-sm btn-edit" onclick="openEditModal(${r.id})">编辑</button><button class="btn btn-sm btn-delete" onclick="confirmDelete(${r.id})">删除</button></div></td></tr>`;
   }).join('');
-
-  // 工程师排名
-  const engMap = {};
-  recs.forEach(r=>{ engMap[r.engineer] = (engMap[r.engineer]||0)+1; });
-  const engSorted = Object.entries(engMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const engBars = engSorted.map(([e,c])=>`
-    <div class="stat-row">
-      <span class="stat-row-label">👤 ${e}</span>
-      <span class="stat-row-val">${c}条</span>
-    </div>
-  `).join('');
-
-  body.innerHTML = `
-    <div class="stats-overview">
-      <div class="stat-card" style="grid-column:1/3">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div class="snum">${monthTotal}</div><div class="slabel">本月维修</div></div>
-          <div style="text-align:center"><div class="snum">${monthDone}</div><div class="slabel">已完成</div></div>
-          <div style="text-align:right"><div class="snum">${monthDays}</div><div class="slabel">出勤天数</div></div>
-        </div>
-      </div>
-      <div class="stat-card"><div class="snum" style="color:var(--blue)">${total}</div><div class="slabel">总记录</div></div>
-      <div class="stat-card"><div class="snum" style="color:var(--green)">${done}</div><div class="slabel">已完成</div></div>
-      <div class="stat-card"><div class="snum" style="color:var(--orange)">${ing}</div><div class="slabel">进行中</div></div>
-      <div class="stat-card"><div class="snum" style="color:var(--text2)">${recs.flatMap(r=>r.steps).length}</div><div class="slabel">维修步骤</div></div>
-    </div>
-
-    <div class="stats-section">
-      <div class="stats-sec-title">📈 月度趋势（近6个月）</div>
-      <div style="display:flex;gap:4px;align-items:flex-end">${monthBars}</div>
-    </div>
-
-    <div class="stats-section">
-      <div class="stats-sec-title">🏥 设备分布</div>
-      ${deviceBars || '<div class="no-data-tip">暂无数据</div>'}
-    </div>
-
-    <div class="stats-section">
-      <div class="stats-sec-title">⚡ 故障类型分布</div>
-      ${faultBars || '<div class="no-data-tip">暂无数据</div>'}
-    </div>
-
-    ${engSorted.length>0?`<div class="stats-section">
-      <div class="stats-sec-title">👤 工程师统计</div>
-      ${engBars}
-    </div>`:''}
-  `;
-}
-
-// ============================================================
-// 词库管理
-// ============================================================
-// 扩展词库（包含分类）
-let userVOCAB = JSON.parse(localStorage.getItem('vocab_user') || '[]');
-
-function getFullVocab(){
-  // 内置词库
-  const builtIn = [
-    {oral:'把管子换了',written:'更换X射线管组件',cat:'ct'},
-    {oral:'球管换了',written:'更换X射线管组件',cat:'ct'},
-    {oral:'球馆换了',written:'更换X射线管组件',cat:'ct'},
-    {oral:'线圈坏了',written:'射频线圈模块故障',cat:'mri'},
-    {oral:'线圈坏掉了',written:'射频线圈模块故障',cat:'mri'},
-    {oral:'梯度线圈坏了',written:'梯度线圈模块故障',cat:'mri'},
-    {oral:'扫一遍看看',written:'执行系统自检程序',cat:'gen'},
-    {oral:'跑个自检',written:'执行系统自检程序',cat:'gen'},
-    {oral:'自检跑一下',written:'执行系统自检程序',cat:'gen'},
-    {oral:'把水排干净',written:'排空冷却液管路残留液体',cat:'gen'},
-    {oral:'水排干净',written:'排空冷却液管路残留液体',cat:'gen'},
-    {oral:'重新上电',written:'重新执行上电初始化序列',cat:'gen'},
-    {oral:'重启一下',written:'重启系统并执行初始化',cat:'gen'},
-    {oral:'校一下场',written:'执行磁场均匀性校准',cat:'mri'},
-    {oral:'匀场校准',written:'执行主磁场均匀性校准',cat:'mri'},
-    {oral:'换备件',written:'更换相应备用部件',cat:'gen'},
-    {oral:'换配件',written:'更换对应维修配件',cat:'gen'},
-    {oral:'拆开看看',written:'拆卸模块进行详细检查',cat:'gen'},
-    {oral:'量一下电压',written:'测量各测试点电压值',cat:'gen'},
-    {oral:'测测电压',written:'测量各测试点电压值',cat:'gen'},
-    {oral:'测下电压',written:'测量各测试点电压值',cat:'gen'},
-    {oral:'冷头坏了',written:'低温冷头（冷却单元）故障',cat:'mri'},
-    {oral:'冷头有问题',written:'低温冷头（冷却单元）故障',cat:'mri'},
-    {oral:'压缩机不转了',written:'冷却压缩机停止运转',cat:'mri'},
-    {oral:'冷头不工作',written:'低温冷头未正常运行',cat:'mri'},
-    {oral:'球管过热',written:'X射线管过热保护触发',cat:'ct'},
-    {oral:'探测器有问题',written:'探测器模块存在异常',cat:'ct'},
-    {oral:'探测器坏了',written:'探测器模块故障',cat:'ct'},
-    {oral:'高压坏了',written:'高压发生器模块故障',cat:'ct'},
-    {oral:'高压有问题',written:'高压发生器模块故障',cat:'ct'},
-    {oral:'机架转不动',written:'机架旋转系统故障',cat:'ct'},
-    {oral:'机架卡了',written:'机架旋转系统故障',cat:'ct'},
-    {oral:'失超了',written:'出现磁场失超（Quench）现象',cat:'mri'},
-    {oral:'氦气跑了',written:'液氦挥发，需要补充液氦',cat:'mri'},
-    {oral:'跑起来测测',written:'启动设备执行性能测试',cat:'gen'},
-    {oral:'做个扫描',written:'执行测试扫描序列',cat:'ct'},
-    {oral:'看看日志',written:'查阅系统错误日志',cat:'gen'},
-    {oral:'查查日志',written:'查阅系统错误日志',cat:'gen'},
-    {oral:'清一下错误',written:'清除系统错误代码记录',cat:'gen'},
-    {oral:'清了报错',written:'清除系统错误代码记录',cat:'gen'},
-    {oral:'换个保险丝',written:'更换对应规格保险丝',cat:'gen'},
-    {oral:'拧紧一下',written:'重新紧固各连接部件',cat:'gen'},
-    {oral:'打个补丁',written:'更新系统补丁或固件',cat:'gen'},
-    {oral:'做了个水模',written:'执行水模扫描测试',cat:'ct'},
-    {oral:'水模扫描',written:'执行水模扫描测试',cat:'ct'},
-    {oral:'校准探测器',written:'执行探测器校准程序',cat:'ct'},
-    {oral:'做了个校准',written:'执行系统校准程序',cat:'gen'},
-    {oral:'补了液氦',written:'补充液氦至标准液位',cat:'mri'},
-    {oral:'氦压不够',written:'氦气压力低于正常值',cat:'mri'},
-    {oral:'球管预热',written:'执行球管预热程序',cat:'ct'},
-  ];
-  return [...userVOCAB, ...builtIn];
-}
-
-function renderVocabList(search){
-  const body = document.getElementById('vocabBody');
-  const filter = document.getElementById('vocabFilterSelect').value;
-  const all = getFullVocab();
-  const filtered = all.filter(v=>{
-    const matchSearch = !search || v.oral.includes(search) || v.written.includes(search);
-    const matchFilter = !filter || v.cat === filter;
-    return matchSearch && matchFilter;
-  });
-
-  if(filtered.length === 0){
-    body.innerHTML = `<div class="vocab-empty"><div style="font-size:36px;margin-bottom:8px">📖</div><div>未找到匹配的词条</div>${userVOCAB.length===0?`<div style="margin-top:8px;font-size:12px">点击右上角 + 添加自定义词条</div>`:''}</div>`;
-    return;
-  }
-
-  // 按分类分组
-  const cats = filter ? [{key:filter, label:filter==='ct'?'CT类':filter==='mri'?'MRI类':'通用维修', items:filtered}] : [
-    {key:'ct', label:'CT类', items:filtered.filter(v=>v.cat==='ct')},
-    {key:'mri', label:'MRI类', items:filtered.filter(v=>v.cat==='mri')},
-    {key:'gen', label:'通用维修', items:filtered.filter(v=>!v.cat||v.cat==='gen')},
-  ];
-
-  let html = '';
-  cats.forEach(cat=>{
-    if(cat.items.length === 0) return;
-    const userCount = cat.items.filter(v=>userVOCAB.some(u=>u.oral===v.oral&&u.written===v.written)).length;
-    html += `
-      <div class="vocab-cat-header">
-        <span class="vocab-cat-title">${cat.label}</span>
-        <span class="vocab-count-badge">${cat.items.length}${userCount>0?' ('+userCount+'自定义)':''}</span>
-      </div>
-    `;
-    cat.items.forEach((v,i)=>{
-      const isUser = userVOCAB.some(u=>u.oral===v.oral&&u.written===v.written);
-      const vid = 'v-'+i+'-'+cat.key;
-      html += `
-        <div class="vocab-item" id="${vid}">
-          <div class="vocab-oral">${v.oral}</div>
-          <div class="vocab-written">${v.written}</div>
-          <div class="vocab-actions">
-            <button class="vocab-action-btn" onclick="editVocab('${encodeURIComponent(v.oral)}','${encodeURIComponent(v.written)}','${cat.key}','${isUser}')" title="编辑">✏️</button>
-            ${isUser?`<button class="vocab-action-btn" onclick="deleteVocab('${encodeURIComponent(v.oral)}','${encodeURIComponent(v.written)}')" title="删除" style="color:var(--red)">🗑</button>`:''}
-          </div>
-        </div>
-      `;
-    });
-  });
-
-  body.innerHTML = html;
-}
-
-function showAddVocab(){
-  document.getElementById('vocabSheetTitle').textContent = '添加词条';
-  document.getElementById('vocabEditId').textContent = '';
-  document.getElementById('vocabOralInput').value = '';
-  document.getElementById('vocabWrittenInput').value = '';
-  document.getElementById('vocabCatSelect').value = 'gen';
-  document.getElementById('vocabOverlay').classList.add('show');
-}
-
-function editVocab(oral64, written64, cat, isUser){
-  if(!isUser){
-    showToast('内置词条不可编辑');
-    return;
-  }
-  document.getElementById('vocabSheetTitle').textContent = '编辑词条';
-  document.getElementById('vocabEditId').textContent = oral64+'||'+written64;
-  document.getElementById('vocabOralInput').value = decodeURIComponent(oral64);
-  document.getElementById('vocabWrittenInput').value = decodeURIComponent(written64);
-  document.getElementById('vocabCatSelect').value = cat;
-  document.getElementById('vocabOverlay').classList.add('show');
-}
-
-function closeVocabOverlay(e){
-  if(e && e.target !== document.getElementById('vocabOverlay')) return;
-  document.getElementById('vocabOverlay').classList.remove('show');
-}
-
-function saveVocabItem(){
-  const oral = document.getElementById('vocabOralInput').value.trim();
-  const written = document.getElementById('vocabWrittenInput').value.trim();
-  const cat = document.getElementById('vocabCatSelect').value;
-  if(!oral || !written){ showToast('请填写口语和书面语'); return; }
-
-  const editId = document.getElementById('vocabEditId').textContent;
-  if(editId){
-    // 编辑模式：先删除旧词条
-    const [oldOral64, oldWritten64] = editId.split('||');
-    const oldOral = decodeURIComponent(oldOral64);
-    const oldWritten = decodeURIComponent(oldWritten64);
-    userVOCAB = userVOCAB.filter(v=>!(v.oral===oldOral&&v.written===oldWritten));
-    showToast('词条已更新');
-  }
-
-  userVOCAB.push({oral, written, cat});
-  localStorage.setItem('vocab_user', JSON.stringify(userVOCAB));
-  closeVocabOverlay(null);
-  renderVocabList(document.getElementById('vocabSearchInput').value);
-  showToast('✓ 词条已保存');
-}
-
-function deleteVocab(oral64, written64){
-  const oral = decodeURIComponent(oral64);
-  const written = decodeURIComponent(written64);
-  if(!confirm(`删除词条"${oral}"？`)) return;
-  userVOCAB = userVOCAB.filter(v=>!(v.oral===oral&&v.written===written));
-  localStorage.setItem('vocab_user', JSON.stringify(userVOCAB));
-  renderVocabList(document.getElementById('vocabSearchInput').value);
-  showToast('已删除');
-}
-
-// ============================================================
-// 数据导入导出（我的页面）
-// ============================================================
-function exportAllData(){
-  const data = JSON.stringify({records, vocab: userVOCAB}, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = `医修宝数据_${new Date().toISOString().slice(0,10)}.json`; a.click();
-  URL.revokeObjectURL(url);
-  showToast('数据已导出');
-}
-
-function importData(){
-  document.getElementById('importFileInput').click();
-}
-
-function handleImport(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (evt)=>{
-    try{
-      const obj = JSON.parse(evt.target.result);
-      if(obj.records){
-        records = obj.records;
-        localStorage.setItem(DB_KEY, JSON.stringify(records));
-      }
-      if(obj.vocab){
-        userVOCAB = obj.vocab;
-        localStorage.setItem('vocab_user', JSON.stringify(userVOCAB));
-      }
-      updateStats(records);
-      renderList();
-      showToast('✓ 导入成功，共'+records.length+'条记录');
-    }catch(ex){
-      showToast('导入失败：文件格式错误');
-    }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-}
-
-function clearAllData(){
-  if(!confirm('确认清除所有记录？此操作不可恢复！')) return;
-  if(!confirm('再次确认：所有维修记录将被永久删除？')) return;
-  localStorage.removeItem(DB_KEY);
-  records = JSON.parse(JSON.stringify(DEMO_RECORDS));
-  updateStats(records);
-  renderList();
-  showToast('已重置为演示数据');
-}
-function oralToWritten(oral){
-  let text = oral.trim();
-  // 使用完整词库（含用户自定义）
-  for(const v of getFullVocab()){
-    if(text.includes(v.oral)){
-      text = text.replace(new RegExp(v.oral.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'g'), v.written);
-    }
-  }
-  // 口语化词汇替换
-  const simpleMap = [
-    [/把(.+?)换[掉了一下]+/g,(m,p)=>`更换${p}`],
-    [/检查一下(.+)/,(m,p)=>`检查${p}`],
-    [/看一下(.+)/,(m,p)=>`查看${p}`],
-    [/试一下(.+)/,(m,p)=>`测试${p}`],
-    [/没问题/g,'正常，符合要求'],
-    [/有问题/g,'存在异常'],
-    [/不行了/g,'发生故障'],
-    [/好了/g,'恢复正常'],
-    [/行了/g,'完成，设备正常'],
-  ];
-  for(const [pat,rep] of simpleMap){
-    if(typeof rep === 'string') text = text.replace(pat, rep);
-    else text = text.replace(pat, rep);
-  }
-  // 首字母大写，结尾加句号
-  text = text.charAt(0).toUpperCase() + text.slice(1);
-  if(!/[。！？.!?]$/.test(text)) text += '。';
-  return text;
-}
-
-// ============================================================
-// 页面切换
-// ============================================================
-function showPage(pageId){
-  document.querySelectorAll('.page').forEach(p=>{
-    if(p.id === pageId){
-      p.classList.remove('hidden','hidden-left');
-    } else {
-      p.classList.add('hidden');
-      p.classList.remove('hidden-left');
-    }
-  });
-}
-function goBack(to){
-  const cur = document.querySelector('.page:not(.hidden)');
-  if(cur) cur.classList.add('hidden');
-  const target = document.getElementById(to);
-  if(target){
-    target.classList.remove('hidden','hidden-left');
-  }
-  if(to === 'page-list'){
-    renderList();
-    // 同步tab高亮
-    document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-    document.querySelector('.tab-item').classList.add('active');
-  }
-}
-
-// ============================================================
-// 统计
-// ============================================================
-function updateStats(recs){
-  document.getElementById('statTotal').textContent = recs.length;
-  document.getElementById('statDone').textContent = recs.filter(r=>r.status==='done').length;
-  // 本月天数：本月有记录的天数
-  const thisMonth = new Date().toISOString().slice(0,7);
-  const days = new Set(recs.filter(r=>r.date.startsWith(thisMonth)).map(r=>r.date)).size;
-  document.getElementById('statDays').textContent = days || '—';
-  const photos = recs.reduce((s,r)=>s+r.steps.reduce((ss,st)=>ss+(st.photos||[]).length,0),0);
-  document.getElementById('statPhotos').textContent = photos;
-}
-
-// ============================================================
-// 列表渲染
-// ============================================================
-function renderList(filter=''){
-  const body = document.getElementById('listBody');
-  const list = filter ? records.filter(r=>
-    r.device.includes(filter)||r.fault.includes(filter)||r.engineer.includes(filter)
-  ) : records;
-
-  if(!list.length){
-    body.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--text3)">
-      <div style="font-size:40px;margin-bottom:12px">📋</div>
-      <div style="font-size:14px">暂无维修记录</div>
-      <div style="font-size:12px;margin-top:4px">点击右下角 ＋ 新建</div>
-    </div>`;
-    return;
-  }
-
-  // 按日期分组
-  const groups = {};
-  list.forEach(r=>{
-    const d = r.date;
-    if(!groups[d]) groups[d] = [];
-    groups[d].push(r);
-  });
-
-  body.innerHTML = '';
-  Object.keys(groups).sort().reverse().forEach(date=>{
-    const sec = document.createElement('div');
-    sec.innerHTML = `<div class="section-title">${formatDate(date)}</div>`;
-    groups[date].forEach(r=>{
-      const photoCnt = r.steps.reduce((s,st)=>s+(st.photos||[]).length,0);
-      const photoHtml = photoCnt > 0 ? `<div class="rc-photos">
-        ${r.steps.filter(s=>(s.photos||[]).length>0).slice(0,3).map(s=>
-          `<div class="rc-photo-thumb"><img src="${s.photos[0]}" alt=""></div>`
-        ).join('')}
-        ${photoCnt>3?`<span class="rc-photo-more">+${photoCnt-3}张</span>`:''}
-      </div>` : '';
-      sec.innerHTML += `<div class="record-card">
-        <div class="rc-header">
-          <div class="rc-device" onclick="openRecord('${r.id}')">${r.device}</div>
-          <div class="rc-header-right">
-            <span class="rc-status ${r.status==='done'?'status-done':'status-ing'}">${r.status==='done'?'已完成':'进行中'}</span>
-            <button class="rc-delete-btn" onclick="event.stopPropagation();deleteRecord('${r.id}')" title="删除">🗑</button>
-          </div>
-        </div>
-        <div class="rc-fault" onclick="openRecord('${r.id}')">故障：${r.fault}${r.errorCode?' · '+r.errorCode:''}</div>
-        <div class="rc-meta" onclick="openRecord('${r.id}')">
-          <span>👨‍🔧 ${r.engineer}</span>
-          <span>📝 ${r.steps.length}个步骤</span>
-          ${photoCnt>0?`<span>📷 ${photoCnt}张照片</span>`:''}
-        </div>
-        ${photoHtml}
-      </div>`;
-    });
-    body.appendChild(sec);
-  });
-  updateStats(records);
-}
-
-function filterList(v){ renderList(v); }
-
-function formatDate(d){
-  const today = new Date().toISOString().slice(0,10);
-  const yd = new Date(Date.now()-86400000).toISOString().slice(0,10);
-  if(d===today) return '今天';
-  if(d===yd) return '昨天';
-  return d.replace(/-/g, '/');
-}
-
-// ============================================================
-// 新建记录
-// ============================================================
-function goNew(){
-  // 设置日期默认值
-  document.getElementById('repairDate').value = new Date().toISOString().slice(0,10);
-  document.getElementById('engineer').value = document.getElementById('engineer').value || '李工';
-  showPage('page-new');
-}
-
-function updateDeviceInfo(){
-  const v = document.getElementById('deviceType').value;
-  document.getElementById('customDeviceGroup').style.display = v==='custom'?'':'none';
-}
-
-function startRepairRecord(){
-  const deviceType = document.getElementById('deviceType').value;
-  const customDev = document.getElementById('customDevice').value;
-  const device = deviceType==='custom' ? customDev : deviceType;
-  const fault = document.getElementById('faultType').value;
-
-  if(!device){ showToast('请选择设备类型'); return; }
-  if(!fault){ showToast('请选择故障类型'); return; }
-
-  const newRec = {
-    id: 'rec-'+Date.now(),
-    device, serial: document.getElementById('serialNum').value,
-    dept: document.getElementById('department').value,
-    fault, errorCode: document.getElementById('errorCode').value,
-    faultDesc: document.getElementById('faultDesc').value,
-    engineer: document.getElementById('engineer').value || '未知',
-    date: document.getElementById('repairDate').value || new Date().toISOString().slice(0,10),
-    status: 'ing', createdAt: new Date().toISOString(),
-    steps: [],
-    faultPhotos: faultPhotos.slice(),
-    errorPhotos: errorPhotos.slice()
-  };
-  faultPhotos = [];
-  errorPhotos = [];
-  records.unshift(newRec);
-  saveDB(records);
-  currentRecordId = newRec.id;
-  renderDetail(newRec.id);
-  showPage('page-detail');
-  // 自动弹出录音面板
-  setTimeout(()=>openRecordOverlay(), 600);
-}
-
-// ============================================================
-// 详情页
-// ============================================================
-function openRecord(id){
-  currentRecordId = id;
-  renderDetail(id);
-  showPage('page-detail');
-}
-
-function renderDetail(id){
-  const rec = records.find(r=>r.id===id);
-  if(!rec) return;
-  document.getElementById('detailTitle').textContent = rec.device;
-  document.getElementById('detailSub').textContent = `${rec.fault} · ${rec.engineer} · ${rec.date}`;
-
-  const body = document.getElementById('detailBody');
-  body.innerHTML = `
-    <div class="info-card">
-      <div class="card-header">
-        <div class="card-title"><span class="dot"></span>设备基本信息</div>
-        <span class="rc-status ${rec.status==='done'?'status-done':'status-ing'}">${rec.status==='done'?'已完成':'进行中'}</span>
-      </div>
-      <div class="field-row"><span class="field-label">设备名称</span><span class="field-val">${rec.device}</span></div>
-      ${rec.serial?`<div class="field-row"><span class="field-label">序列号</span><span class="field-val">${rec.serial}</span></div>`:''}
-      ${rec.dept?`<div class="field-row"><span class="field-label">科室</span><span class="field-val">${rec.dept}</span></div>`:''}
-      <div class="field-row"><span class="field-label">故障类型</span><span class="field-val" style="color:var(--orange)">${rec.fault}</span></div>
-      ${rec.errorCode?`<div class="field-row"><span class="field-label">故障代码</span><span class="field-val" style="font-family:monospace">${rec.errorCode}</span></div>`:''}
-      ${(rec.errorPhotos||[]).length>0?`<div class="field-row"><span class="field-label">代码照片</span>
-        <div class="fault-photos-row" style="display:flex;gap:6px;margin-top:0;flex-wrap:wrap">
-          ${(rec.errorPhotos||[]).map(p=>`<div class="fault-photo-display" onclick="viewPhoto('${p}')"><img src="${p}" alt="故障代码"><button class="del-btn" onclick="event.stopPropagation();deleteRecErrorPhoto('${rec.id}','${p}')">✕</button></div>`).join('')}
-        </div>
-      </div>`:''}
-      ${rec.faultDesc?`<div class="field-row"><span class="field-label">故障描述</span><span class="field-val">${rec.faultDesc}</span></div>`:''}
-      ${(rec.faultPhotos||[]).length>0?`<div class="field-row"><span class="field-label">故障照片</span>
-        <div class="fault-photos-row" style="display:flex;gap:6px;margin-top:0;flex-wrap:wrap">
-          ${(rec.faultPhotos||[]).map(p=>`<div class="fault-photo-display" onclick="viewPhoto('${p}')"><img src="${p}" alt="故障现象"><button class="del-btn" onclick="event.stopPropagation();deleteRecFaultPhoto('${rec.id}','${p}')">✕</button></div>`).join('')}
-        </div>
-      </div>`:''}
-      <div class="field-row"><span class="field-label">维修工程师</span><span class="field-val">${rec.engineer}</span></div>
-      <div class="field-row"><span class="field-label">维修日期</span><span class="field-val">${rec.date}</span></div>
-    </div>
-    <div class="info-card">
-      <div class="card-header">
-        <div class="card-title"><span class="dot" style="background:var(--green)"></span>维修步骤记录 (${rec.steps.length}步)</div>
-        <button class="card-edit-btn" onclick="addVoiceStep()">+ 语音添加</button>
-      </div>
-      <div class="step-list" id="stepList">
-        ${rec.steps.length === 0 ? `<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">
-          <div style="font-size:32px;margin-bottom:8px">🎙</div>
-          <div>点击"语音添加"开始记录维修过程</div>
-        </div>` : renderStepsWithDate(rec)}
-      </div>
-    </div>
-    ${rec.status==='ing'?`<div style="display:flex;gap:10px;margin-top:4px;padding:0 2px">
-      <button style="flex:1;padding:14px;border-radius:var(--radius);background:var(--blue);color:#fff;font-size:14px;font-weight:500;border:none;cursor:pointer" onclick="markDone('${rec.id}')">✓ 标记维修完成</button>
-    </div>`:''}
-  `;
-}
-
-function renderStepHTML(s,i){
-  const photoHtml = (s.photos||[]).map(p=>
-    `<div class="step-photo" onclick="viewPhoto('${p}')"><img src="${p}" alt="维修照片"></div>`
-  ).join('');
-  return `<div class="step-item" id="step-${s.id}">
-    <div class="step-item-header">
-      <div class="step-num">${i+1}</div>
-      <div class="step-content">
-        <div class="step-text" id="st-text-${s.id}">${s.text}</div>
-        <div class="step-time">${s.date ? formatDateFull(s.date) + ' ' : ''}${s.time}</div>
-      </div>
-      <div class="step-actions">
-        <button class="step-action-btn" onclick="addPhotoToStep('${s.id}')" title="添加照片">📷</button>
-        <button class="step-action-btn" onclick="deleteStep('${s.id}')" title="删除" style="color:var(--red)">🗑</button>
-      </div>
-    </div>
-    ${(s.photos&&s.photos.length>0||true)?`<div class="step-photos">
-      ${photoHtml}
-      <div class="step-photo step-photo-add" onclick="addPhotoToStep('${s.id}')">+</div>
-    </div>`:''}
-  </div>`;
-}
-
-function renderStepsWithDate(rec){
-  let html = '';
-  let lastDate = null;
-  rec.steps.forEach((s,i)=>{
-    const stepDate = s.date || rec.date;
-    if(stepDate !== lastDate){
-      html += `<div class="date-sep">${formatDateFull(stepDate)}</div>`;
-      lastDate = stepDate;
-    }
-    html += renderStepHTML(s,i);
-  });
-  return html;
-}
-
-function formatDateFull(d){
-  const today = new Date().toISOString().slice(0,10);
-  const yd = new Date(Date.now()-86400000).toISOString().slice(0,10);
-  if(d===today) return '今天';
-  if(d===yd) return '昨天';
-  const parts = d.split('-');
-  return `${parseInt(parts[1])}月${parseInt(parts[2])}日`;
-}
-
-function markDone(id){
-  const rec = records.find(r=>r.id===id);
-  if(rec){
-    rec.status = 'done';
-    saveDB(records);
-    renderDetail(id);
-    showToast('✓ 维修记录已标记为完成');
-  }
-}
-
-function deleteStep(stepId){
-  const rec = records.find(r=>r.id===currentRecordId);
-  if(!rec) return;
-  if(!confirm('确认删除此步骤？')) return;
-  rec.steps = rec.steps.filter(s=>s.id!==stepId);
-  saveDB(records);
-  renderDetail(currentRecordId);
-}
-function deleteRecFaultPhoto(recId, photo){
-  const rec = records.find(r=>r.id===recId);
-  if(!rec) return;
-  if(!confirm('删除此照片？')) return;
-  rec.faultPhotos = (rec.faultPhotos||[]).filter(p=>p!==photo);
-  saveDB(records);
-  renderDetail(recId);
-}
-function deleteRecErrorPhoto(recId, photo){
-  const rec = records.find(r=>r.id===recId);
-  if(!rec) return;
-  if(!confirm('删除此照片？')) return;
-  rec.errorPhotos = (rec.errorPhotos||[]).filter(p=>p!==photo);
-  saveDB(records);
-  renderDetail(recId);
-}
-
-function deleteRecord(id){
-  const rec = records.find(r=>r.id===id);
-  if(!rec) return;
-  if(!confirm('确认删除维修记录「' + rec.device + '」？此操作不可恢复。')) return;
-  records = records.filter(r=>r.id!==id);
-  saveDB(records);
-  renderList();
-  showToast('已删除');
-}
-
-// ============================================================
-// 录音逻辑（Web Speech API + 模拟）
-// ============================================================
-let isRecording = false;
-let recordTimer = null;
-let recordSeconds = 0;
-let wavInterval = null;
-let recognition = null;
-let finalTranscript = '';
-let interimTranscript = '';
-// 连续录音追加模式
-let appendMode = false;
-let prevOral = ''; // 上一次已确认的口语原文
-
-function openRecordOverlay(){
-  // 如果已有识别内容，保留（追加模式由 appendMoreRecord 调用）
-  if(!appendMode){
-    finalTranscript = '';
-    interimTranscript = '';
-    prevOral = '';
-    document.getElementById('tpOral').textContent = '等待录音...';
-    document.getElementById('tpOral').style.color = 'var(--text3)';
-    document.getElementById('tpOral').style.fontStyle = 'italic';
-    // 移除书面语显示
-    const tp = document.getElementById('transcriptPreview');
-    const written = tp.querySelector('.tp-written');
-    if(written) written.remove();
-    const arrow = tp.querySelector('.tp-arrow');
-    if(arrow) arrow.remove();
-  }
-  document.getElementById('recordTimer').textContent = '00:00';
-  document.getElementById('confirmBtn').classList.add('hidden-btn');
-  document.getElementById('micBtn').classList.remove('recording');
-  document.getElementById('recordHint').textContent = '点击麦克风开始录音';
-  document.getElementById('recordTitle').textContent = `添加步骤 #${getCurrentStepCount()+1}`;
-  stopWaveAnim();
-  isRecording = false;
-  // 追加模式下隐藏继续按钮
-  document.getElementById('appendBtn').classList.add('hidden-btn');
-  document.getElementById('appendHint').classList.add('hidden-btn');
-  document.getElementById('appendHint').classList.remove('show');
-  document.getElementById('recordOverlay').classList.add('show');
-}
-
-function getCurrentStepCount(){
-  const rec = records.find(r=>r.id===currentRecordId);
-  return rec ? rec.steps.length : 0;
-}
-
-function overlayClick(e){
-  if(e.target === document.getElementById('recordOverlay')) cancelRecord();
-}
-
-function toggleRecord(){
-  if(isRecording) stopRecording();
-  else startRecording();
-}
-
-function startRecording(){
-  isRecording = true;
-  recordSeconds = 0;
-  document.getElementById('micBtn').classList.add('recording');
-  document.getElementById('recordHint').textContent = '正在录音... 再次点击停止';
-  document.getElementById('confirmBtn').classList.add('hidden-btn');
-  // 追加模式：保留已有口语显示
-  if(!appendMode || !prevOral){
-    document.getElementById('tpOral').textContent = '识别中...';
-    document.getElementById('tpOral').style.color = 'var(--blue)';
-    document.getElementById('tpOral').style.fontStyle = 'normal';
-  } else {
-    // 显示已追加内容 + 新识别
-    document.getElementById('tpOral').textContent = prevOral + ' + 识别中...';
-    document.getElementById('tpOral').style.color = 'var(--orange)';
-    document.getElementById('tpOral').style.fontStyle = 'normal';
-    document.getElementById('appendHint').classList.remove('hidden-btn');
-    document.getElementById('appendHint').classList.add('show');
-  }
-
-  // 计时器
-  recordTimer = setInterval(()=>{
-    recordSeconds++;
-    const m = String(Math.floor(recordSeconds/60)).padStart(2,'0');
-    const s = String(recordSeconds%60).padStart(2,'0');
-    document.getElementById('recordTimer').textContent = `${m}:${s}`;
-  }, 1000);
-
-  // 波形动画
-  startWaveAnim();
-
-  // 尝试使用Web Speech API
-  if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRec();
-    recognition.lang = 'zh-CN';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    // 取多个候选，取最优（提升识别准确率）
-    recognition.maxAlternatives = 3;
-    // 追加模式：保留之前已识别内容
-    if(!appendMode) finalTranscript = '';
-
-    recognition.onresult = (e)=>{
-      let interim = '';
-      for(let i = e.resultIndex; i < e.results.length; i++){
-        if(e.results[i].isFinal){
-          // 选置信度最高的候选
-          let best = e.results[i][0];
-          for(let a = 1; a < e.results[i].length; a++){
-            if(e.results[i][a].confidence > best.confidence){
-              best = e.results[i][a];
-            }
-          }
-          finalTranscript += best.transcript;
-        } else {
-          interim += e.results[i][0].transcript;
-        }
-      }
-      const currentOral = finalTranscript + interim;
-      if(appendMode && prevOral){
-        document.getElementById('tpOral').textContent = prevOral + ' ' + currentOral;
-      } else {
-        document.getElementById('tpOral').textContent = currentOral || '识别中...';
-      }
-    };
-    recognition.onerror = ()=>{
-      // 降级到模拟模式
-      simulateTranscript();
-    };
-    try{ recognition.start(); }catch(e){ simulateTranscript(); }
-  } else {
-    simulateTranscript();
-  }
-}
-
-// 模拟识别（演示用）
-const DEMO_SENTENCES = [
-  '检查设备电源，三相电压正常，没有问题',
-  '测了一下高低压，低压偏低，大概只有2.1',
-  '把那个冷却水管给排干净了，液位不够',
-  '重新上电，等系统自检完成',
-  '跑个扫描测一下，图像没问题，系统恢复正常了',
-  '把备件换了，检测一下接头有没有漏',
-  '看了一下日志，有梯度错误，Z轴通道有问题',
-  '做了磁场均匀性校准，结果显示正常',
-];
-let demoIdx = 0;
-let simTimer = null;
-
-function simulateTranscript(){
-  const sentence = DEMO_SENTENCES[demoIdx % DEMO_SENTENCES.length];
-  demoIdx++;
-  let pos = 0;
-  simTimer = setInterval(()=>{
-    pos += 2;
-    document.getElementById('tpOral').textContent = sentence.slice(0,pos);
-    if(pos >= sentence.length){
-      clearInterval(simTimer);
-      finalTranscript = sentence;
-    }
-  }, 60);
-}
-
-function stopRecording(){
-  isRecording = false;
-  clearInterval(recordTimer);
-  clearInterval(simTimer);
-  stopWaveAnim();
-  if(recognition){ try{ recognition.stop(); }catch(e){} recognition=null; }
-  document.getElementById('micBtn').classList.remove('recording');
-  document.getElementById('recordHint').textContent = '录音完成，确认后添加步骤';
-
-  const newOral = finalTranscript || document.getElementById('tpOral').textContent.replace(/ \+ 识别中...$/,'').replace(/识别中...$/,'');
-  // 追加模式：合并之前的口语
-  if(appendMode && prevOral){
-    const combinedOral = prevOral + ' ' + newOral;
-    document.getElementById('tpOral').textContent = '「' + combinedOral + '」';
-    document.getElementById('tpOral').style.color = 'var(--orange)';
-    // 转换为书面语
-    const written = oralToWritten(combinedOral);
-    const tp = document.getElementById('transcriptPreview');
-    tp.querySelector('.tp-written')?.remove();
-    tp.querySelector('.tp-arrow')?.remove();
-    const arrowDiv = document.createElement('div');
-    arrowDiv.className = 'tp-arrow converting';
-    arrowDiv.innerHTML = '⬇ 规范化处理';
-    tp.appendChild(arrowDiv);
-    const writtenDiv = document.createElement('div');
-    writtenDiv.className = 'tp-written converting';
-    writtenDiv.textContent = written;
-    tp.appendChild(writtenDiv);
-    finalTranscript = written;
-  } else {
-    prevOral = newOral;
-    const oral = newOral;
-    if(oral && oral !== '识别中...' && oral !== '等待录音...'){
-      const written = oralToWritten(oral);
-      const tp = document.getElementById('transcriptPreview');
-      tp.querySelector('.tp-written')?.remove();
-      tp.querySelector('.tp-arrow')?.remove();
-      document.getElementById('tpOral').textContent = '「' + oral + '」';
-      document.getElementById('tpOral').style.color = 'var(--orange)';
-      const arrowDiv = document.createElement('div');
-      arrowDiv.className = 'tp-arrow converting';
-      arrowDiv.innerHTML = '⬇ 规范化处理';
-      tp.appendChild(arrowDiv);
-      const writtenDiv = document.createElement('div');
-      writtenDiv.className = 'tp-written converting';
-      writtenDiv.textContent = written;
-      tp.appendChild(writtenDiv);
-      finalTranscript = written;
-    }
-  }
-  // 显示继续按钮（用户可追加更多）
-  document.getElementById('appendBtn').classList.remove('hidden-btn');
-  document.getElementById('confirmBtn').classList.remove('hidden-btn');
-}
-
-function cancelRecord(){
-  isRecording = false;
-  clearInterval(recordTimer);
-  clearInterval(simTimer);
-  stopWaveAnim();
-  if(recognition){ try{ recognition.stop(); }catch(e){} recognition=null; }
-  appendMode = false;
-  prevOral = '';
-  document.getElementById('recordOverlay').classList.remove('show');
-}
-
-// 继续录音（追加模式）
-function appendMoreRecord(){
-  appendMode = true;
-  // 保存当前口语原文
-  const currentOralEl = document.getElementById('tpOral');
-  let currentText = currentOralEl.textContent || '';
-  currentText = currentText.replace(/「|」/g,'').trim();
-  if(currentText && currentText !== '识别中...' && currentText !== '等待录音...'){
-    prevOral = currentText;
-  }
-  // 重置识别变量，但保留显示
-  finalTranscript = '';
-  interimTranscript = '';
-  document.getElementById('confirmBtn').classList.add('hidden-btn');
-  document.getElementById('appendBtn').classList.add('hidden-btn');
-  document.getElementById('recordHint').textContent = '点击麦克风继续录音';
-  // 自动开始录音
-  startRecording();
-}
-
-function confirmStep(){
-  const text = finalTranscript;
-  if(!text || text==='识别中...'){ showToast('请先完成录音'); return; }
-  const rec = records.find(r=>r.id===currentRecordId);
-  if(!rec){ showToast('请先创建维修记录'); return; }
-
-  const now = new Date();
-  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  const stepOral = document.getElementById('tpOral').textContent.replace(/「|」/g,'');
-
-  rec.steps.push({
-    id:'s-'+Date.now(),
-    text: text,
-    oral: stepOral,
-    time: time,
-    date: new Date().toISOString().slice(0,10),
-    photos: []
-  });
-  saveDB(records);
-  cancelRecord();
-  renderDetail(currentRecordId);
-  showToast('✓ 步骤已添加');
-}
-
-function addVoiceStep(){
-  openRecordOverlay();
-}
-
-// ============================================================
-// 故障描述语音输入
-// ============================================================
-let isFaultRecording = false;
-let faultRecordTimer = null;
-let faultRecordSeconds = 0;
-let faultRecognition = null;
-let faultFinalTranscript = '';
-let faultInterimTranscript = '';
-
-function startVoiceFaultDesc(){
-  // 如果已有录音结果，保留（支持追加）
-  const existingText = document.getElementById('faultTpOral').textContent || '';
-  const hasExisting = existingText && existingText !== '等待录音...' && existingText !== '识别中...';
-  if(!hasExisting){
-    faultFinalTranscript = '';
-    faultInterimTranscript = '';
-    document.getElementById('faultTpOral').textContent = '等待录音...';
-    document.getElementById('faultTpOral').style.color = 'var(--text3)';
-    document.getElementById('faultTpOral').style.fontStyle = 'italic';
-  } else {
-    document.getElementById('faultTpOral').style.color = 'var(--blue)';
-    document.getElementById('faultTpOral').style.fontStyle = 'normal';
-  }
-  document.getElementById('faultRecordTimer').textContent = '00:00';
-  document.getElementById('faultConfirmBtn').classList.add('hidden-btn');
-  document.getElementById('faultMicBtn').classList.remove('recording');
-  document.getElementById('faultRecordHint').textContent = hasExisting ? '点击可重新录音（之前内容将被替换）' : '点击麦克风开始录音';
-  document.getElementById('voiceFaultOverlay').classList.add('show');
-}
-
-function closeVoiceFault(e){
-  if(e && e.target !== document.getElementById('voiceFaultOverlay')) return;
-  isFaultRecording = false;
-  clearInterval(faultRecordTimer);
-  if(faultRecognition){ try{faultRecognition.stop();}catch(e){} faultRecognition=null; }
-  document.getElementById('voiceFaultOverlay').classList.remove('show');
-}
-
-function toggleFaultRecord(){
-  if(isFaultRecording) stopFaultRecord();
-  else startFaultRecording_();
-}
-
-function startFaultRecording_(){
-  isFaultRecording = true;
-  faultRecordSeconds = 0;
-  document.getElementById('faultMicBtn').classList.add('recording');
-  document.getElementById('faultRecordHint').textContent = '正在录音... 再次点击停止';
-  document.getElementById('faultConfirmBtn').classList.add('hidden-btn');
-  document.getElementById('faultTpOral').textContent = '识别中...';
-  document.getElementById('faultTpOral').style.color = 'var(--blue)';
-  document.getElementById('faultTpOral').style.fontStyle = 'normal';
-  faultRecordTimer = setInterval(()=>{
-    faultRecordSeconds++;
-    const m = String(Math.floor(faultRecordSeconds/60)).padStart(2,'0');
-    const s = String(faultRecordSeconds%60).padStart(2,'0');
-    document.getElementById('faultRecordTimer').textContent = `${m}:${s}`;
-  }, 1000);
-  if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    faultRecognition = new SpeechRec();
-    faultRecognition.lang = 'zh-CN';
-    faultRecognition.continuous = true;
-    faultRecognition.interimResults = true;
-    faultRecognition.maxAlternatives = 3;
-    faultFinalTranscript = '';
-    faultRecognition.onresult = (e)=>{
-      let interim = '';
-      for(let i=e.resultIndex;i<e.results.length;i++){
-        if(e.results[i].isFinal){
-          let best = e.results[i][0];
-          for(let a=1;a<e.results[i].length;a++){
-            if(e.results[i][a].confidence > best.confidence) best = e.results[i][a];
-          }
-          faultFinalTranscript += best.transcript;
-        } else {
-          interim += e.results[i][0].transcript;
-        }
-      }
-      document.getElementById('faultTpOral').textContent = (faultFinalTranscript+interim)||'识别中...';
-    };
-    faultRecognition.onerror = ()=>{ simulateFaultTranscript(); };
-    try{ faultRecognition.start(); }catch(e){ simulateFaultTranscript(); }
-  } else { simulateFaultTranscript(); }
-}
-
-const FAULT_DEMO = ['CT球管过热保护触发，扫描中止，球管温度超过190度','机架旋转异常，扫描过程中出现卡顿，旋转速度不稳定','探测器报错误，图像出现环形伪影，怀疑探测器模块故障'];
-let faultDemoIdx = 0;
-let faultSimTimer = null;
-
-function simulateFaultTranscript(){
-  const sentence = FAULT_DEMO[faultDemoIdx % FAULT_DEMO.length];
-  faultDemoIdx++;
-  let pos = 0;
-  faultSimTimer = setInterval(()=>{
-    pos += 2;
-    document.getElementById('faultTpOral').textContent = sentence.slice(0,pos);
-    if(pos >= sentence.length){ clearInterval(faultSimTimer); faultFinalTranscript = sentence; }
-  }, 60);
-}
-
-function stopFaultRecord(){
-  isFaultRecording = false;
-  clearInterval(faultRecordTimer);
-  clearInterval(faultSimTimer);
-  if(faultRecognition){ try{faultRecognition.stop();}catch(e){} faultRecognition=null; }
-  document.getElementById('faultMicBtn').classList.remove('recording');
-  document.getElementById('faultRecordHint').textContent = '录音完成，确认后填入描述';
-  const oral = faultFinalTranscript || document.getElementById('faultTpOral').textContent;
-  if(oral && oral!=='识别中...' && oral!=='等待录音...'){
-    document.getElementById('faultTpOral').textContent = oral;
-    document.getElementById('faultTpOral').style.color = 'var(--blue)';
-    document.getElementById('faultConfirmBtn').classList.remove('hidden-btn');
-  }
-}
-
-function confirmFaultText(){
-  const text = faultFinalTranscript || document.getElementById('faultTpOral').textContent;
-  if(!text || text==='识别中...'){ showToast('请先完成录音'); return; }
-  const ta = document.getElementById('faultDesc');
-  // 去除引号后追加
-  const cleanText = text.replace(/「|」/g,'').trim();
-  ta.value = ta.value ? (ta.value + ' ' + cleanText) : cleanText;
-  closeVoiceFault(null);
-  showToast('✓ 已填入故障描述');
-}
-
-// 波形动画
-function startWaveAnim(){
-  wavInterval = setInterval(()=>{
-    for(let i=1;i<=12;i++){
-      const el = document.getElementById('w'+i);
-      if(el) el.style.height = (4 + Math.random()*44) + 'px';
-    }
-  }, 80);
-}
-function stopWaveAnim(){
-  clearInterval(wavInterval);
-  for(let i=1;i<=12;i++){
-    const el = document.getElementById('w'+i);
-    if(el) el.style.height = '8px';
-  }
-}
-
-// ============================================================
-// 照片功能
-// ============================================================
-function addPhotoToStep(stepId){
-  photoTargetStep = stepId;
-  document.getElementById('photoInput').click();
-}
-
-function handlePhotoInput(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (e)=>{
-    const dataUrl = e.target.result;
-    const rec = records.find(r=>r.id===currentRecordId);
-    if(!rec) return;
-    const step = rec.steps.find(s=>s.id===photoTargetStep);
-    if(!step) return;
-    if(!step.photos) step.photos = [];
-    step.photos.push(dataUrl);
-    saveDB(records);
-    renderDetail(currentRecordId);
-    showToast('✓ 照片已添加');
-  };
-  reader.readAsDataURL(file);
-  event.target.value = '';
-}
-
-function viewPhoto(src){
-  document.getElementById('photoFullImg').src = src;
-  document.getElementById('photoOverlay').classList.add('show');
-}
-function closePhoto(){
-  document.getElementById('photoOverlay').classList.remove('show');
-}
-
-// ============================================================
-// 故障描述照片（新建页）
-// ============================================================
-let faultPhotoTarget = 'fault'; // 'fault' | 'error'
-
-function addFaultPhoto(){
-  faultPhotoTarget = 'fault';
-  document.getElementById('faultPhotoInput').click();
-}
-function addErrorPhoto(){
-  faultPhotoTarget = 'error';
-  document.getElementById('faultPhotoInput').click();
-}
-
-function handleFaultPhoto(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (e)=>{
-    const dataUrl = e.target.result;
-    if(faultPhotoTarget === 'fault'){
-      faultPhotos.push(dataUrl);
-      renderFaultPhotoPreview('faultPhotosPreview', faultPhotos, 'fault');
-    } else {
-      errorPhotos.push(dataUrl);
-      renderFaultPhotoPreview('errorPhotosPreview', errorPhotos, 'error');
-    }
-  };
-  reader.readAsDataURL(file);
-  event.target.value = '';
-}
-
-function renderFaultPhotoPreview(containerId, photos, type){
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  container.innerHTML = photos.map((p,i)=>`
-    <div class="fault-photo-thumb">
-      <img src="${p}" alt="">
-      <button class="remove-btn" onclick="removeFaultPhoto(${i},'${type}')">✕</button>
-    </div>
-  `).join('');
-}
-
-function removeFaultPhoto(idx, type){
-  if(type==='fault'){ faultPhotos.splice(idx,1); renderFaultPhotoPreview('faultPhotosPreview', faultPhotos, 'fault'); }
-  else { errorPhotos.splice(idx,1); renderFaultPhotoPreview('errorPhotosPreview', errorPhotos, 'error'); }
-}
-
-// ============================================================
-// 维修总结
-// ============================================================
-function showSummary(){
-  const rec = records.find(r=>r.id===currentRecordId);
-  if(!rec){ showToast('请先选择维修记录'); return; }
-  if(rec.steps.length===0){ showToast('还没有维修步骤，请先添加记录'); return; }
-  document.getElementById('summaryDeviceName').textContent = rec.device + ' · ' + rec.fault;
-  renderSummary(rec);
-  showPage('page-summary');
-}
-
-function renderSummary(rec){
-  const body = document.getElementById('summaryBody');
-  // 计算维修时长
-  let duration = '-';
-  if(rec.steps.length>=2){
-    const t1 = rec.steps[0].time.split(':').map(Number);
-    const t2 = rec.steps[rec.steps.length-1].time.split(':').map(Number);
-    const mins = (t2[0]-t1[0])*60 + (t2[1]-t1[1]);
-    if(mins > 0) duration = mins >= 60 ? `${Math.floor(mins/60)}小时${mins%60?mins%60+'分':''}` : `${mins}分钟`;
-  }
-  const photoCnt = rec.steps.reduce((s,st)=>s+(st.photos||[]).length,0);
-
-  // 按日期分组步骤
-  let stepsHtml = '';
-  let lastDate = null;
-  rec.steps.forEach((s,i)=>{
-    const stepDate = s.date || rec.date;
-    if(stepDate !== lastDate){
-      if(stepsHtml) stepsHtml += '<div style="height:8px"></div>';
-      stepsHtml += `<div class="date-sep" style="margin-bottom:6px">${formatDateFull(stepDate)}</div>`;
-      lastDate = stepDate;
-    }
-    stepsHtml += `
-      <div class="summary-step-row">
-        <div class="summary-step-num">${i+1}</div>
-        <div class="summary-text">${s.text}</div>
-      </div>
-    `;
-  });
-
-  // 生成结论
-  const conclusions = {
-    '球管故障':'故障排除，X射线管冷却系统恢复正常，建议定期检查冷却液液位，每季度维护一次冷却系统。',
-    '探测器故障':'探测器模块检修完成，图像质量验证正常，建议关注后续扫描图像，定期校准。',
-    '冷头/压缩机故障':'低温冷头及压缩机系统故障排除，氦气压力恢复正常，建议每月检查压力参数。',
-    '梯度线圈故障':'梯度系统故障处理中，建议联系厂家工程师进一步确认梯度放大器状态。',
-    '射频线圈故障':'射频线圈系统恢复正常，信噪比测试通过，建议定期清洁线圈连接接口。',
-    '电源系统故障':'电源系统恢复正常，各项参数满足设备运行要求，建议检查UPS蓄电池状态。',
-    '软件/系统故障':'系统软件问题已解决，设备功能恢复正常，建议及时更新至最新版本。',
-  };
-  const conclusion = conclusions[rec.fault] || `${rec.fault}已处理完毕，设备恢复正常运行状态，建议按维护计划进行后续预防性维护。`;
-
-  // 生成AI摘要
-  const summary = generateAISummary(rec);
-
-  body.innerHTML = `
-    <div class="summary-card">
-      <div class="summary-section-title">🔬 故障摘要</div>
-      <div class="summary-text">${summary}</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-section-title">🔧 维修过程 (${rec.steps.length}步)</div>
-      ${stepsHtml}
-    </div>
-    ${(rec.faultPhotos||[]).length>0||(rec.errorPhotos||[]).length>0?`<div class="summary-card">
-      <div class="summary-section-title">📷 现场照片</div>
-      ${(rec.errorPhotos||[]).length>0?`<div style="font-size:12px;color:var(--text3);margin-bottom:6px">故障代码照片</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">${rec.errorPhotos.map(p=>`<img src="${p}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;cursor:pointer" onclick="viewPhoto('${p}')" alt="故障代码">`).join('')}</div>`:''}
-      ${(rec.faultPhotos||[]).length>0?`<div style="font-size:12px;color:var(--text3);margin-bottom:6px">故障现象照片</div><div style="display:flex;flex-wrap:wrap;gap:8px">${rec.faultPhotos.map(p=>`<img src="${p}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;cursor:pointer" onclick="viewPhoto('${p}')" alt="故障现象">`).join('')}</div>`:''}
-    </div>`:''}
-    ${photoCnt>0?`<div class="summary-card">
-      <div class="summary-section-title">🔧 维修过程照片 (${photoCnt}张)</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
-        ${rec.steps.flatMap(s=>(s.photos||[]).map(p=>`<img src="${p}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;cursor:pointer" onclick="viewPhoto('${p}')" alt="维修照片">`)).join('')}
-      </div>
-    </div>`:''}
-    <div class="summary-card">
-      <div class="summary-section-title">✅ 维修结论</div>
-      <div class="summary-text">${conclusion}</div>
-    </div>
-    <div class="summary-card">
-      <div class="summary-section-title">📊 维修统计</div>
-      <div class="summary-meta-grid">
-        <div class="meta-chip"><div class="meta-chip-num">${rec.steps.length}</div><div class="meta-chip-label">记录步骤</div></div>
-        <div class="meta-chip"><div class="meta-chip-num">${duration}</div><div class="meta-chip-label">维修时长</div></div>
-        <div class="meta-chip"><div class="meta-chip-num">${photoCnt}</div><div class="meta-chip-label">附件照片</div></div>
-        <div class="meta-chip"><div class="meta-chip-num">${rec.status==='done'?'✓':'进行中'}</div><div class="meta-chip-label">完成状态</div></div>
-      </div>
-    </div>
-    <div style="background:var(--gray-bg);border-radius:var(--radius);padding:12px 14px;font-size:12px;color:var(--text3);line-height:1.8">
-      <div style="font-weight:500;color:var(--text2);margin-bottom:4px">报告信息</div>
-      设备：${rec.device} ${rec.serial?'· '+rec.serial:''}<br>
-      故障代码：${rec.errorCode||'无'}<br>
-      维修工程师：${rec.engineer}<br>
-      维修日期：${rec.date}<br>
-      报告生成时间：${new Date().toLocaleString('zh-CN')}
-    </div>
-  `;
-}
-
-function generateAISummary(rec){
-  const keyTerms = {
-    'CT':'CT扫描设备',
-    '球管':'X射线管',
-    'MRI':'磁共振成像设备',
-    '冷头':'低温冷头',
-    '梯度':'梯度系统',
-  };
-  return `本次维修针对 ${rec.device}（${rec.dept||'科室未填写'}）的${rec.fault}问题。` +
-    `${rec.errorCode?`故障代码 ${rec.errorCode} 显示：`:''}${rec.faultDesc||'设备出现故障症状'}。` +
-    `维修工程师 ${rec.engineer} 于 ${rec.date} 完成现场排查，` +
-    `共记录 ${rec.steps.length} 个维修步骤，通过系统性检查定位故障根源并予以修复。`;
-}
-
-function regenerateSummary(){
-  const rec = records.find(r=>r.id===currentRecordId);
-  if(!rec) return;
-  const body = document.getElementById('summaryBody');
-  body.innerHTML = `<div class="ai-loading"><div class="ai-dots"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div><div style="font-size:13px;color:var(--text3)">AI 正在重新生成维修总结...</div></div>`;
-  setTimeout(()=>renderSummary(rec), 1800);
-}
-
-function copyText(){
-  const rec = records.find(r=>r.id===currentRecordId);
-  if(!rec) return;
-  const text = `【维修报告】${rec.device}\n设备型号：${rec.serial||'-'}\n故障类型：${rec.fault}\n${rec.errorCode?'故障代码：'+rec.errorCode+'\n':''}维修工程师：${rec.engineer}\n维修日期：${rec.date}\n\n【维修步骤】\n${rec.steps.map((s,i)=>`${i+1}. ${s.text}`).join('\n')}`;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>showToast('✓ 报告已复制到剪贴板'));
-  } else {
-    showToast('当前环境不支持自动复制');
-  }
-}
-
-function shareSummary(){
-  const rec = records.find(r=>r.id===currentRecordId);
-  if(!rec) return;
-  const text = `【医修宝维修报告】\n设备：${rec.device}\n故障：${rec.fault}\n工程师：${rec.engineer}\n日期：${rec.date}\n步骤数：${rec.steps.length}`;
-  if(navigator.share){
-    navigator.share({title:'维修报告 - '+rec.device, text});
-  } else {
-    copyText();
-    showToast('链接已复制，可手动分享');
-  }
-}
-
-// ============================================================
-// 标签栏
-// ============================================================
-function switchTab(name, el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
-  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-  if(el) el.classList.add('active');
-  if(name==='list'){
-    document.getElementById('page-list').classList.remove('hidden');
-    // 顶栏按钮触发时，手动激活 tab-bar 对应项
-    document.querySelectorAll('.tab-item').forEach(t=>{
-      if(t.textContent.includes('记录') || t.textContent.includes('')) t.classList.add('active');
-    });
-  } else if(name==='stats'){
-    document.getElementById('page-stats').classList.remove('hidden');
-    renderStatsPage(records);
-  } else if(name==='vocab'){
-    document.getElementById('page-vocab').classList.remove('hidden');
-    renderVocabList('');
-  } else if(name==='mine'){
-    document.getElementById('page-mine').classList.remove('hidden');
-  }
-}
-
-// ============================================================
-// Toast
-// ============================================================
-let toastTimer = null;
-function showToast(msg){
-  clearTimeout(toastTimer);
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 2200);
 }
 
-// ============================================================
-// 初始化
-// ============================================================
-window.addEventListener('DOMContentLoaded', ()=>{
-  renderList();
-  updateStats(records);
-  // 注册 PWA Service Worker
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').then(reg=>{
-      console.log('SW registered:', reg.scope);
-    }).catch(err=>{
-      console.log('SW registration failed:', err);
-    });
-  }
-  // PWA 安装提示（支持时显示）
-  let deferredPrompt;
-  window.addEventListener('beforeinstallprompt', e=>{
-    e.preventDefault();
-    deferredPrompt = e;
-    // 可以在这里触发一个"添加到主屏幕"的按钮提示
-    console.log('PWA installable');
-  });
-});
+function getDifficultyClass(d){return d==='已攻克'?'tag-green':d==='有进展'?'tag-orange':d==='难度大'?'tag-red':'tag-gray';}
+function getRowClass(d){return d==='已攻克'?'row-conquered':d==='有进展'?'row-progress':d==='难度大'?'row-hard':'';}
+function getResultTag(r){return r==='已修复'?'<span class="tag tag-green">已修复</span>':r==='部分修复'?'<span class="tag tag-orange">部分修复</span>':r==='待跟进'?'<span class="tag tag-gray">待跟进</span>':'<span class="muted">-</span>';}
+function updateStats(){document.getElementById('totalCount').textContent=records.length;document.getElementById('conqueredCount').textContent=records.filter(r=>r.difficulty==='已攻克').length;document.getElementById('progressCount').textContent=records.filter(r=>r.difficulty==='有进展').length;document.getElementById('hardCount').textContent=records.filter(r=>r.difficulty==='难度大').length;}
+function formatTime(iso){try{const d=new Date(iso);const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}catch(e){return '-';}}
+function esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function openAddModal(){document.getElementById('modalTitle').textContent='添加维修记录';document.getElementById('editId').value='';document.getElementById('fPartName').value='';document.getElementById('fRepairPerson').value='';document.getElementById('fMachineModel').value='';document.getElementById('fFaultDesc').value='';document.getElementById('fRepairContent').value='';document.getElementById('fDifficulty').value='';document.getElementById('fDiffRemark').value='';document.getElementById('fResult').value='已修复';document.getElementById('fRemark').value='';updateDifficultyPreview();document.getElementById('editModal').classList.add('active');}
+function openEditModal(id){const r=records.find(x=>x.id===id);if(!r)return;document.getElementById('modalTitle').textContent='编辑维修记录';document.getElementById('editId').value=r.id;document.getElementById('fPartName').value=r.partName||'';document.getElementById('fRepairPerson').value=r.repairPerson||'';document.getElementById('fMachineModel').value=r.machineModel||'';document.getElementById('fFaultDesc').value=r.faultDesc||'';document.getElementById('fRepairContent').value=r.repairContent||'';document.getElementById('fDifficulty').value=r.difficulty||'';document.getElementById('fDiffRemark').value=r.diffRemark||'';document.getElementById('fResult').value=r.result||'已修复';document.getElementById('fRemark').value=r.remark||'';updateDifficultyPreview();document.getElementById('editModal').classList.add('active');}
+function closeModal(){document.getElementById('editModal').classList.remove('active');}
+function updateDifficultyPreview(){const d=document.getElementById('fDifficulty').value,p=document.getElementById('diffPreview');if(!d){p.classList.remove('active');p.innerHTML='';return;}const c=getDifficultyClass(d),h={'已攻克':'问题已解决，可总结经验','有进展':'有突破但未完全解决，持续跟进','难度大':'仍需攻关，考虑寻求外部支持'};p.classList.add('active');p.innerHTML=`<span class="tag ${c}">${d}</span> <span style="font-size:0.78rem;color:#64748b;">${h[d]}</span>`;}
+
+async function saveRecord(){
+  const id=document.getElementById('editId').value;
+  const partName=document.getElementById('fPartName').value.trim();
+  const repairPerson=document.getElementById('fRepairPerson').value.trim();
+  const machineModel=document.getElementById('fMachineModel').value.trim();
+  const faultDesc=document.getElementById('fFaultDesc').value.trim();
+  const repairContent=document.getElementById('fRepairContent').value.trim();
+  const difficulty=document.getElementById('fDifficulty').value;
+  const diffRemark=document.getElementById('fDiffRemark').value.trim();
+  const result=document.getElementById('fResult').value;
+  const remark=document.getElementById('fRemark').value.trim();
+  if(!partName){showToast('请填写零件名称','error');return;}
+  if(!repairPerson){showToast('请填写维修人员','error');return;}
+  if(!difficulty){showToast('请选择维修难度','error');return;}
+  const rec={partName,repairPerson,machineModel,faultDesc,repairContent,difficulty,diffRemark,result,remark};
+  try{
+    if(id){const r=await apiPut(parseInt(id),rec);if(r.success===false&&r.message){showToast(r.message,'error');closeModal();return;}showToast('记录已更新','success');}
+    else{await apiPost(rec);showToast('记录已添加','success');}
+    await loadData();renderTable();closeModal();
+  }catch(e){showToast('保存失败：'+e.message,'error');}
+}
+
+async function confirmDelete(id){const r=records.find(x=>x.id===id);if(!r)return;showConfirm(`确认删除「${r.partName}」？`,async()=>{try{await apiDelete(id);await loadData();renderTable();showToast('已删除','success');}catch(e){showToast('删除失败','error');}});}
+function confirmClearAll(){if(records.length===0){showToast('没有数据','error');return;}showConfirm(`确认清空全部 ${records.length} 条记录？`,async()=>{try{await apiClearAll();await loadData();renderTable();showToast('已清空','success');}catch(e){showToast('清空失败','error');}});}
+
+function showConfirm(msg,cb){document.getElementById('confirmMsg').textContent=msg;confirmCallback=cb;document.getElementById('confirmOverlay').classList.add('active');document.getElementById('confirmOkBtn').onclick=()=>{if(confirmCallback)confirmCallback();closeConfirm();};}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('active');confirmCallback=null;}
+
+function exportExcel(){if(records.length===0){showToast('没有数据','error');return;}const ds={'已攻克':'background:#dcfce7;color:#16a34a;font-weight:bold;','有进展':'background:#fed7aa;color:#ea580c;font-weight:bold;','难度大':'background:#fee2e2;color:#dc2626;font-weight:bold;'};const rs={'已修复':'background:#dcfce7;color:#16a34a;','部分修复':'background:#fed7aa;color:#ea580c;','待跟进':'background:#f3f4f6;color:#6b7280;'};const headers=['序号','零件名称','维修人员','适用机型','故障描述','维修内容','维修难度','难度备注','维修结果','备注','更新时间'];let html='<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;font-family:Microsoft YaHei,sans-serif;font-size:11pt;"><thead><tr style="background:#334155;color:#fff;font-weight:bold;">';headers.forEach(h=>html+=`<th style="border:1px solid #1e293b;padding:6px 10px;">${h}</th>`);html+='</tr></thead><tbody>';const sorted=[...records].sort((a,b)=>b.id-a.id);sorted.forEach((r,i)=>{html+='<tr>';html+=`<td style="text-align:center;border:1px solid #e2e8f0;padding:5px 10px;">${i+1}</td>`;html+=`<td style="border:1px solid #e2e8f0;padding:5px 10px;">${esc(r.partName)}</td>`;html+=`<td style="border:1px solid #e2e8f0;padding:5px 10px;">${esc(r.repairPerson)}</td>`;html+=`<td style="border:1px solid #e2e8f0;padding:5px 10px;">${esc(r.machineModel)}</td>`;html+=`<td style="border:1px solid #e2e8f0;padding:5px 10px;">${esc(r.faultDesc)}</td>`;html+=`<td style="border:1px solid #e2e8f0;padding:5px 10px;">${esc(r.repairContent)}</td>`;html+=`<td style="text-align:center;border:1px solid #e2e8f0;padding:5px 10px;${ds[r.difficulty]||''}">${esc(r.difficulty)}</td>`;html+=`<td style="border:1px solid #e2e8f0;padding:5px 10px;">${esc(r.diffRemark)}</td>`;html+=`<td style="text-align:center;border:1px solid #e2e8f0;padding:5px 10px;${rs[r.result]||''}">${esc(r.result)}</td>`;html+=`<td style="border:1px solid #e2e8f0;padding:5px 10px;">${esc(r.remark)}</td>`;html+=`<td style="border:1px solid #e2e8f0;padding:5px 10px;color:#64748b;font-size:10pt;">${r.createdAt?formatTime(r.createdAt):'-'}</td>`;html+='</tr>';});html+='</tbody></table>';const bom='\uFEFF';const blob=new Blob([bom+html],{type:'application/vnd.ms-excel;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`维修记录_${new Date().toISOString().slice(0,10)}.xls`;a.click();URL.revokeObjectURL(url);showToast('已导出 '+records.length+' 条','success');}
+function exportJSON(){if(records.length===0){showToast('没有数据','error');return;}const data=JSON.stringify(records,null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`维修记录_${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);showToast('已导出 '+records.length+' 条','success');}
+async function importData(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=async function(e){try{const data=JSON.parse(e.target.result);if(!Array.isArray(data))throw new Error('格式错误');showConfirm(`导入 ${data.length} 条记录？将覆盖当前数据。`,async()=>{try{const r=await apiBulk(data);if(r.success){await loadData();renderTable();showToast('已导入 '+r.count+' 条','success');}else{showToast('导入失败','error');}}catch(err){showToast('导入失败','error');}});}catch(err){showToast('文件格式错误','error');}};reader.readAsText(file);event.target.value='';}
+
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');setTimeout(()=>{t.className='toast';},2500);}
+
+init();
 </script>
 </body>
 </html>
